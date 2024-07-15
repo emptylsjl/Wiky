@@ -1,0 +1,102 @@
+[package]
+name = "wiky"
+version = "0.1.0"
+edition = "2021"
+#build = "build.rs"
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+# [[bin]]
+# name = "wiky_bin"
+# path = "src/main.rs"
+
+[dependencies]
+memchr               = "2.7.1"
+once_cell            = "1.19.0"
+itertools            = "0.13.0"
+anyhow               = "1.0.80"
+thiserror            = "1.0.57"
+serde_json           = "1.0.114"
+serde                = {"version" = "1.0.197", "features" = ["derive"]}
+rand                 = "0.9.0-alpha.0"
+sha2                 = "0.11.0-pre.3"
+rayon                = "1.8.1"
+zip                  = "2.1.3"
+clap                 = {"version" = "4.5.4", "features" = ["derive"]}
+bzip2                = "0.4.4"
+nohash-hasher        = "0.2.0"
+rustc-hash           = "1.1.0"
+zstd-safe            = "7.2.0"
+quick-xml            = "0.36.0"
+quickxml_to_serde    = "0.6.0"
+pyo3                 = { version = "0.22.1", features = ["extension-module", "anyhow"] }
+# log                  = "0.4.20"
+# glam                 = "0.25.0"
+# rand_chacha          = "0.9.0-alpha.0"
+# raw-window-handle    = "0.6.0"
+# num-traits           = "0.2.18"
+# smallvec             = "2.0.0-alpha.3"
+# memoffset            = "0.9.0"
+# image                = "0.25.0-preview.0"
+# bytemuck             = "1.14.3"
+# ttf-parser           = "0.20.0"
+# base64               = "0.21.7"
+# libc                 = "0.2.153"
+# env_logger           = "0.11.2"
+# #wgpu                 = "0.19.1"
+# criterion            = "0.5.1"
+# gpu-alloc            = "0.6.0"
+# hex                  = "0.4.3"
+# walkdir              = "2.4.0"
+# strum                = "0.26.1"
+# strum_macros         = "0.26.1"
+# sysinfo              = "0.30.5"
+# systemstat           = "0.2.3"
+# winres               = "0.1.12"
+# camino               = "1.1.6"
+# aes-gcm              = {"version" = "0.10.3", "features" = ["heapless"]}
+# #webrtc               = "0.10.1"
+# winreg               = "0.52.0"
+# #proc-macro2          = "1.0.78"
+# rustc-hash           = "1.1.0"
+# nohash               = "0.2.0"
+# quiche               = "0.20.1"
+# #s2n-quic             = { version = "1.34.0", features = ["provider-event-tracing"] }
+# lazy_static          = "1.4.0"
+# cxx                  = "1.0.120"
+# autocxx = "0.26.0"
+
+regex = { git = "https://github.com/rust-lang/regex.git" }
+
+# #winit = { path = "../../crates/winit" }
+# winit = "0.29.10"
+# #ash = { path = "../../crates/ash/ash", features = ["linked", "debug"] }
+# #ttf-parser = { path = "../crates/ttf-parser", features = ["default"] }
+# #bb8 = { path = "../../crates/bb8/bb8" }
+
+utils = { path = "crates/utils" }
+
+# [profile.dev.package]
+# zune-png = { opt-level = 3 }
+# zune-jpeg = { opt-level = 3 }
+
+# #[dev-dependencies]
+
+# [build-dependencies]
+# bindgen = "0.69.1"
+# winres = "0.1.12"
+# cmake = "0.1"
+# cxx-build = "1.0"
+# autocxx-build = "0.26.0"
+
+# [profile.release]
+# debug = true
+# #lto = true
+
+[features]
+default = []
+index_u64 = []
+
+
+
