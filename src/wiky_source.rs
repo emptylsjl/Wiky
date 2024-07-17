@@ -65,9 +65,9 @@ impl OffsetId {
     }
 }
 
-#[cfg(feature = "index_u64")]
-type Indexes = u64;
-#[cfg(not(feature = "index_u64"))]
+// #[cfg(feature = "index_u64")]
+// type Indexes = u64;
+// #[cfg(not(feature = "index_u64"))]
 type Indexes = (u64, String);
 
 #[pyclass]
@@ -132,14 +132,14 @@ impl WikySource {
             .context("open zstd fail")
     }
 
-    pub fn chunks<'a, T, F: Fn(u64, u64, &[(u64, u64, Vec<Indexes>)], &mut [u8]) -> T + 'a>(
+    pub fn chunks<'a, T, F: FnMut(u64, u64, &[(u64, u64, Vec<Indexes>)], &mut [u8]) -> T + 'a>(
         &'a self,
         chunk_size: usize,
-        runner: F
+        mut runner: F
     ) -> impl Iterator<Item = T> + 'a {
 
         let mut wiki_zstd = self.open_zstd().unwrap();
-        let mut zstd_buf = vec![0; 6_200_000 * THREAD_COUNT * 100];
+        let mut zstd_buf = vec![0; 6_200_000 * (*THREAD_COUNT.get().unwrap_or(&4)) * 100];
 
         self.indexes.chunks(chunk_size).map(move |ranges| {
             let (chunk_st, chunk_ed) = (ranges[0].0, ranges[ranges.len()-1].1);
@@ -162,7 +162,7 @@ impl WikySource {
 
     pub fn validate_index_dump(&self) -> PyResult<()> {
 
-        let _ = self.chunks(THREAD_COUNT*100, |chunk_st, chunk_ed, ranges, zstd_buf| {
+        let _ = self.chunks((*THREAD_COUNT.get().unwrap_or(&4)) * 20, |chunk_st, chunk_ed, ranges, zstd_buf| {
 
             let valid = ranges.par_iter().all(|(st, ed, v)| {
                 let (st, ed) = ((st - chunk_st) as usize, (ed - chunk_st) as usize);
@@ -204,7 +204,7 @@ impl WikySource {
         let now = time::Instant::now();
 
         let sizes = self.chunks(
-            THREAD_COUNT*100,
+            (*THREAD_COUNT.get().unwrap_or(&4)) * 20,
             |chunk_st, chunk_ed, ranges, zstd_buf| {
                 println!("--- {chunk_st}:{chunk_ed} - {:7.4}%", (chunk_ed as f64 / self.zstd_len as f64) * 100.0);
 
@@ -219,7 +219,7 @@ impl WikySource {
 
             }).flatten().collect_vec();
 
-        println!("t:{THREAD_COUNT}\nelapsed: {:?}", now.elapsed());
+        println!("t:{THREAD_COUNT:?}\nelapsed: {:?}", now.elapsed());
 
         println!("text chunk len: {}", sizes.len());
         println!("text chunk size max: {}", sizes.iter().max().unwrap());
@@ -228,4 +228,12 @@ impl WikySource {
         Ok(())
     }
 }
+
+// #[pyclass]
+// #[derive(Clone)]
+// pub struct WikySourceIter {
+//     zstd_buf: Vec<u8>,
+//     indexes: [(u64, u64, Vec<Indexes>)],
+//     index: usize,
+// }
 

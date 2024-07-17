@@ -18,19 +18,22 @@ use bzip2::read::{BzEncoder, BzDecoder};
 use anyhow::{Context, Result};
 use itertools::Itertools;
 use nohash_hasher::BuildNoHashHasher;
+use pyo3::prelude::*;
 use quickxml_to_serde::Config;
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
-
+use mysql::*;
+use mysql::prelude::*;
+use pyo3::exceptions::PyRuntimeError;
 use utils::*;
 
 use crate::misc::*;
 use crate::constant::*;
 use crate::wiky_source::*;
 
-fn setup_dump<P: AsRef<Path>, Q: AsRef<Path>, O: AsRef<Path>, R: AsRef<Path>>(
+pub fn setup_dump<P: AsRef<Path>, Q: AsRef<Path>, O: AsRef<Path>, R: AsRef<Path>>(
     src_bz2: P, src_index: Q, dst_zstd: O, dst_index: R
 ) -> Result<()> {
 
@@ -74,13 +77,13 @@ fn setup_dump<P: AsRef<Path>, Q: AsRef<Path>, O: AsRef<Path>, R: AsRef<Path>>(
     let mut chunk_index = 0;
     // let mut last_offset = 550u64;
     let block_bz2_size = 6_000_000;
-    let chunk_size = THREAD_COUNT * 10;
+    let chunk_size = *THREAD_COUNT.get().unwrap_or(&4) * 10;
     // // let a = Vec::<u64>::with_capacity(120);
     // let mut bz2_index = 0;
     // let mut stage_bz2 = vec![Vec::<(u64, u64, &str)>::with_capacity(120); THREAD_COUNT+1];
     let mut bz2_raw_buf = vec![0; block_bz2_size * chunk_size];
     // let mut bz2_extract_buf: Vec::<Vec<u8>> = vec![vec![0; 20_000_000]; THREAD_COUNT];
-    let mut zstd_dst_buf = vec![vec![0u8; 6_050_000*5]; THREAD_COUNT * 10 / 4 + 1];
+    let mut zstd_dst_buf = vec![vec![0u8; 6_050_000*5]; *THREAD_COUNT.get().unwrap_or(&4) * 10 / 4 + 1];
     let mut remapped_index = vec![];
 
     let mut offset_st_remapped = 0;
@@ -237,7 +240,7 @@ fn setup_dump<P: AsRef<Path>, Q: AsRef<Path>, O: AsRef<Path>, R: AsRef<Path>>(
     Ok(())
 }
 
-fn site_info<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, dst_text: Q, offset: usize) -> Result<()> {
+pub fn site_info<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, dst_text: Q, offset: usize) -> Result<()> {
     let mut wiki_bz2 = fs::File::open(src_bz2).context("open bz2 fail")?;
     let mut bz2_raw_buf = vec![0; offset];
     wiki_bz2.read_exact(&mut bz2_raw_buf).context("read site_info from multistream fail")?;
@@ -252,8 +255,7 @@ fn site_info<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, dst_text: Q, offset: us
     Ok(())
 }
 
-
-fn bench_bz2<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, src_index: Q) -> Result<()> {
+pub fn bench_bz2<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, src_index: Q) -> Result<()> {
 
     let mut wiki_bz2 = fs::File::open(src_bz2).context("can not open file")?;
     let wiki_index = fs::read(src_index).context("can not open file")?;
@@ -293,7 +295,7 @@ fn bench_bz2<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, src_index: Q) -> Result
     println!("bz2 chunk size mean: {}", offsets.iter().map(|(&a, &b)| b - a).sum::<u64>() as f64 / offsets.len() as f64);
 
     let block_bz2_size = 6_000_000;
-    let chunk_size = THREAD_COUNT * 10;
+    let chunk_size = *THREAD_COUNT.get().unwrap_or(&4) * 10;
     let mut bz2_raw_buf = vec![0; block_bz2_size * chunk_size];
 
     let now = time::Instant::now();
@@ -317,11 +319,70 @@ fn bench_bz2<P: AsRef<Path>, Q: AsRef<Path>>(src_bz2: P, src_index: Q) -> Result
             }).collect::<Vec<_>>()
         }).collect_vec();
 
-    println!("t:{THREAD_COUNT}\nelapsed: {:?}", now.elapsed());
+    println!("t:{THREAD_COUNT:?}\nelapsed: {:?}", now.elapsed());
 
     println!("text chunk len: {}", sizes.len());
     println!("text chunk size max: {}", sizes.iter().max().unwrap());
     println!("text chunk size mean: {}", sizes.iter().sum::<usize>() as f64 / sizes.len() as f64);
 
     Ok(())
+}
+
+#[pyfunction]
+pub fn set_thread(n: usize) {
+    THREAD_COUNT.set(n).unwrap();
+    ThreadPoolBuilder::new().num_threads(*THREAD_COUNT.get().unwrap_or(&4)).build_global().unwrap();
+}
+
+pub fn insert_wiky_index(ws: &WikySource) -> Result<()> {
+
+    let opts = OptsBuilder::new()
+        .user(Some("root"))
+        .db_name(Some("wiky_base"));
+    let mut conn = Conn::new(opts)?;
+
+    conn.query_drop("delete from wiky_index").unwrap();
+    ws.chunks((*THREAD_COUNT.get().unwrap_or(&4)) * 20, |chunk_st, chunk_ed, ranges, zstd_buf| {
+        let mut tx = conn.start_transaction(TxOpts::default())?;
+        let result = tx.exec_batch(
+            r"
+            insert into wiky_index (zstd_st, page_id, page_title)
+            values (:zstd_st, :page_id, :page_title)",
+            ranges.iter()
+                .flat_map(|(st, ed, v)| v.iter().map(move |(pid, title)| {
+                    (st, pid, title)
+                }))
+                .map(|(st, pid, title)| params! {
+                    "zstd_st" => st,
+                    "page_id" => pid,
+                    "page_title" => title,
+                })
+        ).context(format!("insert failed at {chunk_st}:{chunk_ed}"));
+        tx.commit().context(format!("commit failed at {chunk_st}:{chunk_ed}"))?;
+        result
+    }).collect::<Result<()>>()
+}
+
+pub fn insert_zstd_range(ws: &WikySource) -> Result<()> {
+
+    let opts = OptsBuilder::new()
+        .user(Some("root"))
+        .db_name(Some("wiky_base"));
+    let mut conn = Conn::new(opts)?;
+
+    conn.query_drop("delete from wiky_index").unwrap();
+    conn.query_drop("delete from zstd_range").unwrap();
+    ws.chunks((*THREAD_COUNT.get().unwrap_or(&4)) * 20, |chunk_st, chunk_ed, ranges, zstd_buf| {
+        let mut tx = conn.start_transaction(TxOpts::default())?;
+        let result = tx.exec_batch(r"
+            insert into zstd_range (st, ed)
+            values (:st, :ed)",
+            ranges.iter().map(|(st, ed, v)| params! {
+                "st" => st,
+                "ed" => ed,
+            }),
+        ).context(format!("insert failed at {chunk_st}:{chunk_ed}"));
+        tx.commit().context(format!("commit failed at {chunk_st}:{chunk_ed}"))?;
+        result
+    }).collect::<Result<()>>()
 }

@@ -35,9 +35,11 @@ use setup::*;
 use constant::*;
 use wiky_source::*;
 
+
+
 fn main() -> Result<()> {
 
-    ThreadPoolBuilder::new().num_threads(THREAD_COUNT).build_global().unwrap();
+    set_thread(20);
 
     let src_bz2_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-simple.xml.bz2";
     let src_index_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index-simple.txt";
@@ -53,32 +55,32 @@ fn main() -> Result<()> {
     //     "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream.xml.bz2",
     //     "C:/a/enwiki/enwiki-20240601-site-info.txt",
     //     550
-    // );
+    // )?;
     //
-    // let a = prepare_dump(
+    // let a = setup_dump(
     //     src_bz2_simple,
     //     src_index_simple,
     //     dst_zstd_simple,
     //     dst_index_simple,
-    // );
+    // )?;
     //
-    // let a = prepare_dump(
+    // let a = setup_dump(
     //     src_bz2,
     //     src_index,
     //     dst_zstd,
     //     dst_index,
-    // );
+    // )?;
     // sleep(4000);
 
     let ws = WikySource::from_path(
-        dst_index,
-        dst_zstd
+        dst_index_simple,
+        dst_zstd_simple
     ).unwrap();
-
-    let a = ws.indexes.iter().flat_map(|x| &x.2).map(|x| x.1.len()).max().unwrap();
-    println!("{a}");
-
     // ws.validate_index_dump().unwrap();
+
+    insert_zstd_range(&ws).unwrap();
+    insert_wiky_index(&ws).unwrap();
+
 
     // bench_bz2(src_bz2, src_index).unwrap();
     // ws.bench_zstd().unwrap();

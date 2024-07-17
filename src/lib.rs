@@ -34,38 +34,33 @@ use setup::*;
 use constant::*;
 use wiky_source::*;
 
-/// Formats the sum of two numbers as string.
 #[pyfunction]
 pub fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
 }
 
-#[pyfunction]
-fn double(x: usize) -> usize {
-    x * 2
-}
-
-/// A Python module implemented in Rust. The name of this function must match
-/// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
-/// import the module.
 #[pymodule]
 #[pyo3(name = "wiky")]
 mod pyo3_wiki {
     use super::*;
 
     #[pymodule_export]
-    use sum_as_string;
+    use super::setup::set_thread;
 
-    #[pymodule_export]
-    use double;
-
-    #[pyfunction] // This will be part of the module
-    fn triple(x: usize) -> usize {
-        x * 3
+    #[pyfunction]
+    fn site_info(src_bz2: &str, src_index: &str, offset: usize) -> PyResult<()> {
+        setup::site_info(src_bz2, src_index, offset).into_py_result()
     }
 
-    #[pyclass]
-    struct Unit;
+    #[pyfunction]
+    fn setup_dump(src_bz2: &str, src_index: &str, dst_zstd: &str, dst_index: &str) -> PyResult<()> {
+        setup::setup_dump(src_bz2, src_index, dst_zstd, dst_index).into_py_result()
+    }
+
+    #[pyfunction]
+    fn bench_bz2(src_bz2: &str, src_index: &str) -> PyResult<()> {
+        setup::bench_bz2(src_bz2, src_index).into_py_result()
+    }
 
     #[pymodule_init]
     fn init(m: &Bound<'_, PyModule>) -> PyResult<()> {

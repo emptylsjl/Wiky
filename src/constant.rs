@@ -1,4 +1,3 @@
+use once_cell::sync::OnceCell;
 
-
-
-pub const THREAD_COUNT: usize = 20;
+pub static THREAD_COUNT: OnceCell<usize> = OnceCell::new();

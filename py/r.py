@@ -35,7 +35,7 @@ class gv:
         'Sec-Fetch-Site': 'none',
         # 'Sec-Fetch-User': '?1'
     }
-    interesting = "⋖⋗≪≫⩽⩾〈〉：？·ᚋ∕⧶／＼⧵"
+    repl = "⋖⋗≪≫⩽⩾〈〉：？·ᚋ∕⧶／＼⧵"
 
 
 class ClassToDict(json.JSONEncoder):
@@ -145,14 +145,14 @@ def dump(c, mode,
         elif mode == 'b64':
             if type(c) == str:
                 c = c.encode(encoding)
-            return base64.b64encode(c).decode("ascii") if b64_as_str else base64.b64encode(c)
+            return base64.b64encode(c).decode("latin1") if b64_as_str else base64.b64encode(c)
 
     except Exception as e:
         print(traceback.format_exc())
 
 
 def load(c, mode,
-         encoding='utf-8', b64_as_str=False, **kwargs):
+         encoding='utf-8', b64_as_str=True, **kwargs):
     try:
         if mode == 'none':
             return c
@@ -164,7 +164,7 @@ def load(c, mode,
         #     return c
         elif mode == 'b64':
             if type(c) == str:
-                c = c.encode("ascii")
+                c = c.encode("latin1")
             return base64.b64decode(c).decode(encoding) if b64_as_str else base64.b64decode(c)
     except Exception as e:
         print(traceback.format_exc())
@@ -328,4 +328,14 @@ def elevated(runas=True):
 
 
 if __name__ == '__main__':
+
+    ct = 0
+    for i in Path("..").iterdir():
+        if i.is_dir() and i.name in ["crates", "src", "py"]:
+            for f in i.rglob("*"):
+                if f.is_file() and '.idea' not in f.parts and f.suffix not in [".pyc", ".log"]:
+                    ct += f.read_text("utf-8").count("\n")
+
+    print(ct )
+
     pass

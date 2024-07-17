@@ -30,11 +30,14 @@ import mariadb
 
 import r
 
+r.set_logger('wiky_db.log')
+logger = r.get_logger('wiky_db_conns')
+
 type Connection = mariadb.connections.Connection
 
 
 class DBConn:
-    def __init__(self, user, pwd="", host="localhost", port=3306):
+    def __init__(self, user, pwd="", host="localhost", port=3306, use_dict=True):
         try:
             conn = mariadb.connect(
                 user=user,
@@ -64,12 +67,11 @@ if __name__ == '__main__':
     # wikitext = decode_page(550, 12)
     # print(wikitext.find("revision").find("text").text)
 
-    if False:
-        import wiky
-        print(wiky.__all__)
-        a = wiky.WikySource("enwiki-20240601-index-remapped-simple.txt",
-                            "enwiki-20240601-pages-simple.xml.zstd")
-        a.validate()
+    import wiky
+    print(wiky.__all__)
+    a = wiky.WikySource("enwiki-20240601-index-remapped-simple.txt",
+                        "enwiki-20240601-pages-simple.xml.zstd")
+    a.validate()
 
     # print(a.zstd_len)
     pass

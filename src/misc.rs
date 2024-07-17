@@ -18,6 +18,7 @@ use bzip2::read::{BzEncoder, BzDecoder};
 use anyhow::{Context, Result};
 use itertools::Itertools;
 use nohash_hasher::BuildNoHashHasher;
+use pyo3::prelude::*;
 use quickxml_to_serde::Config;
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
@@ -53,4 +54,21 @@ pub fn validate_xml(text: &str) -> Result<()> {
         }
     }
     Ok(())
+}
+
+pub trait IntoPyResult<T> {
+    fn into_py_result(self) -> PyResult<T>;
+}
+
+impl<T> IntoPyResult<T> for anyhow::Result<T> {
+    fn into_py_result(self) -> PyResult<T> {
+        self.map_err(|e| {
+            let mut error_message = e.to_string();
+
+            // if let Some(backtrace) = e.backtrace() {
+            //     writeln!(error_message, " - Backtrace:\n{}", backtrace).unwrap();
+            // }
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(error_message)
+        })
+    }
 }
