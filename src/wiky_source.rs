@@ -16,7 +16,7 @@ use bzip2::read::{BzEncoder, BzDecoder};
 use anyhow::{Context, Result};
 use itertools::Itertools;
 use nohash_hasher::BuildNoHashHasher;
-use quickxml_to_serde::Config;
+use quickxml_to_serde::{Config, xml_string_to_json};
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
 use quick_xml::events::Event;
@@ -25,6 +25,7 @@ use pyo3::prelude::*;
 
 use crate::constant::*;
 use crate::misc::*;
+use crate::setup;
 
 pub struct OffsetId {
     st_id: u64,
@@ -65,9 +66,9 @@ impl OffsetId {
     }
 }
 
-// #[cfg(feature = "index_u64")]
-// type Indexes = u64;
-// #[cfg(not(feature = "index_u64"))]
+#[cfg(feature = "index_u64")]
+type Indexes = u64;
+#[cfg(not(feature = "index_u64"))]
 type Indexes = (u64, String);
 
 #[pyclass]
@@ -158,6 +159,29 @@ impl WikySource {
     #[new]
     pub fn new(index_path: &str, zstd_path: &str) -> PyResult<Self> {
         Self::from_path(index_path, zstd_path)
+    }
+
+    pub fn decode_chunk(&self, chunk_st: usize, chunk_ed: usize) -> PyResult<String> {
+        let mut zstd_buf = vec![0; chunk_ed-chunk_st];
+        let mut wiki_zstd = self.open_zstd().unwrap();
+
+        wiki_zstd.seek(SeekFrom::Start(chunk_st as u64)).unwrap();
+        wiki_zstd.read_exact(&mut zstd_buf[..(chunk_ed-chunk_st)]).unwrap();
+
+        let mut dst = vec![0; 60_200_000];
+        let len = zstd_safe::decompress(&mut dst, &zstd_buf)
+            .map_err(|e| py_err(e.to_string()))?;
+        dst.truncate(len);
+        String::from_utf8(dst).map_err(|e| py_err(e.to_string()))
+    }
+
+    pub fn decode_page_json(&self, chunk_st: usize, chunk_ed: usize, page_id: u64) -> PyResult<String> {
+        let chunk_text = self.decode_chunk(chunk_st, chunk_ed)?;
+
+        let conf = Config::new_with_defaults();
+        let json = xml_string_to_json(format!("<root>{chunk_text}</root>"), &conf)
+            .map_err(|e| py_err("malformed ".to_owned()+&e.to_string()))?;
+        let a = json.get("i");
     }
 
     pub fn validate_index_dump(&self) -> PyResult<()> {

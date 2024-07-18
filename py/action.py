@@ -72,7 +72,6 @@ def register_wiky(
         mail: str,
         phone: str = None,
 ) -> (bool, str):
-
     valid = ensure_char(username, 20)
     valid = valid and ensure_char(display_name, 20)
     valid = valid and validate_phone_str(username, 16)
@@ -85,18 +84,18 @@ def register_wiky(
     try:
         db.conn.begin()
 
-        db.cursor.execute("SELECT incr_id FROM wiky_user_account WHERE username = %s", (username,))
+        db.cursor.execute("select incr_id from wiky_user_account where username = %s", (username,))
         if (wiky_incr_id_row := db.cursor.fetchone()) is not None:
             logger.error(f"register_wiky error: {repr(username)} - wiky_acc_exist")
             return (False, "wiky_acc_exist")
 
-        db.cursor.execute("SELECT incr_id FROM uni_account WHERE username = %s", (username,))
+        db.cursor.execute("select incr_id from uni_account where username = %s", (username,))
         if (uni_incr_id_row := db.cursor.fetchone()) is None:
             db.cursor.execute(
                 '''
-                INSERT INTO uni_account 
+                insert into uni_account 
                 (uni_uuid, username, display_name, pwd_hash, mail, phone, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                values (%s, %s, %s, %s, %s, %s, %s)
                 '''.strip(),
                 (uuid.uuid4().bytes, username, display_name, pwd_hash, mail, phone, "pending")
             )
@@ -107,9 +106,9 @@ def register_wiky(
 
         db.cursor.execute(
             '''
-            INSERT INTO wiky_user_account 
+            insert into wiky_user_account 
             (uni_incr_id, service_id, user_uuid, username, display_name, status)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            values (%s, %s, %s, %s, %s, %s)
             '''.strip(),
             (incr_id, 1, uuid.uuid4().bytes, username, display_name, "pending")
         )
@@ -135,7 +134,6 @@ def register_uni(
         mail: str,
         phone: str = None,
 ) -> bool:
-
     valid = ensure_char(username, 20)
     valid = valid and ensure_char(display_name, 20)
     valid = valid and validate_phone_str(username, 16)
@@ -151,9 +149,9 @@ def register_uni(
         db.conn.begin()
         db.cursor.execute(
             '''
-            INSERT INTO uni_account 
+            insert into uni_account 
             (uni_uuid, username, display_name, pwd_hash, mail, phone, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            values (%s, %s, %s, %s, %s, %s, %s)
             '''.strip(),
             (uuid.uuid4().bytes, username, display_name, pwd_hash, mail, phone, "pending")
         )
@@ -186,12 +184,12 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
         cursor = db.conn.cursor(dictionary=True)
         db.cursor.execute(
             """
-            SELECT 
+            select 
             t1.incr_id, t1.uni_incr_id, t1.username, t1.user_uuid, t1.status, 
             t0.mail, t0.pwd_hash, t0.status
-            FROM 
+            from 
             wiky_user_account t1 JOIN uni_account t0 ON t1.uni_incr_id = t0.incr_id
-            WHERE t1.username = %s # maybe add mail
+            where t1.username = %s # maybe add mail
             """.strip(),
             (username,)
         )
@@ -209,14 +207,14 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
             return (False, "auth_fail")
 
         time_now = time.time()
-        token_now = username+r.sha265(username+str(time_now))
+        token_now = username + r.sha265(username + str(time_now))
         validity = datetime.now() + timedelta(days=7)
 
         cursor.execute(
             '''
-            INSERT INTO wiky_session 
+            insert into wiky_session 
             (uni_incr_id, wiky_incr_id, user_uuid, session_token, token_validity)
-            VALUES (%s, %s, %s, %s, %s)
+            values (%s, %s, %s, %s, %s)
             '''.strip(),
             (uni_incr, wiky_incr, wiky_uuid, token_now, validity)
         )
@@ -237,9 +235,9 @@ def create_wiky_profile(db: DBConn, ws: WikySession):
         db.conn.begin()
         db.cursor.execute(
             '''
-            INSERT INTO wiky_user_profile 
+            insert into wiky_user_profile 
             (uni_incr_id, wiky_incr_id)
-            VALUES (%s, %s)
+            values (%s, %s)
             '''.strip(),
             (ws.uni_incr, ws.wiky_incr)
         )
@@ -256,10 +254,10 @@ def user_request(db: DBConn, name_src, name_dst) -> (bool, str):
     try:
         db.conn.begin()
 
-        db.cursor.execute("SELECT incr_id FROM wiky_user_account WHERE username = %s", (name_src,))
+        db.cursor.execute("select incr_id from wiky_user_account where username = %s", (name_src,))
         src_id_row = db.cursor.fetchone()
 
-        db.cursor.execute("SELECT incr_id FROM wiky_user_account WHERE username = %s", (name_dst,))
+        db.cursor.execute("select incr_id from wiky_user_account where username = %s", (name_dst,))
         dst_id_row = db.cursor.fetchone()
 
         if src_id_row is None or dst_id_row is None:
@@ -270,9 +268,9 @@ def user_request(db: DBConn, name_src, name_dst) -> (bool, str):
 
         db.cursor.execute(
             '''
-            INSERT INTO wiky_relation 
+            insert into wiky_relation 
             (wiky_incr_id0, wiky_incr_id1, src_0, status)
-            VALUES (%s, %s, %s, %s)
+            values (%s, %s, %s, %s)
             '''.strip(),
             (min(src_id, dst_id), max(src_id, dst_id), src_id < dst_id, "pending")
         )
@@ -283,6 +281,75 @@ def user_request(db: DBConn, name_src, name_dst) -> (bool, str):
         db.conn.rollback()
         logger.error(f"user_request error: {name_src}->{name_dst}:{repr(e)} - {repr(traceback.format_exc())}")
         logger.error(f"wiky_relation rollback: {name_src}->{name_dst}")
+        return False
+
+
+def add_balance(db: DBConn, ws: WikySession, amount) -> (bool, str):
+    try:
+        db.conn.begin()
+        db.cursor.execute(
+            "select wiky_incr_id, balance from wiky_user_profile where wiky_incr_id = %s",
+            (ws.wiky_incr,)
+        )
+        profile_row = db.cursor.fetchone()
+        if profile_row is None:
+            logger.error(f"add_balance fail: user not found - {ws.wiky_uuid}:{ws.name}")
+            return (False, "invalid name")
+
+        db.cursor.execute(
+            "update wiky_user_profile balance = %s where wiky_incr_id = %s",
+            (profile_row[1] + amount, ws.wiky_incr)
+        )
+        db.conn.commit()
+        logger.info(f"update wiky_user_profile: {repr(ws.wiky_uuid)}:{ws.name}")
+
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"add_balance error: {ws.wiky_uuid}:{repr(e)} - {repr(traceback.format_exc())}")
+        logger.error(f"wiky_relation rollback: {repr(ws.wiky_uuid)}:{ws.name}")
+        return False
+
+
+def pull_wiky(db: DBConn, ws: WikySession, amount) -> (bool, str):
+    try:
+        db.conn.begin()
+        db.cursor.execute(
+            "select wiky_incr_id, balance from wiky_user_profile where wiky_incr_id = %s",
+            (ws.wiky_incr,)
+        )
+        profile_row = db.cursor.fetchone()
+        if profile_row is None:
+            logger.error(f"pull_wiky fail: profile not found - {ws.wiky_uuid}:{ws.name}")
+            return (False, "invalid name")
+
+        db.cursor.execute(
+            "update wiky_user_profile balance = %s where wiky_incr_id = %s",
+            (profile_row[1] - amount, ws.wiky_incr)
+        )
+
+        db.cursor.execute(
+            '''
+            select t0.incr_id, t0.page_id, t0.zstd_st, t1.ed
+            from (
+                select incr_id, zstd_st, page_id
+                from wiky_index
+                order by RAND()
+                limit %s
+            ) t0
+            join zstd_range t1 on t0.zstd_st = t1.st
+            order by t0.page_id
+            ''',
+            (amount,)
+        )
+        profile_rows = db.cursor.fetchall()
+
+        db.conn.commit()
+        logger.info(f"update wiky_user_profile: {repr(ws.wiky_uuid)}:{ws.name}")
+
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"add_balance error: {ws.wiky_uuid}:{repr(e)} - {repr(traceback.format_exc())}")
+        logger.error(f"wiky_relation rollback: {repr(ws.wiky_uuid)}:{ws.name}")
         return False
 
 

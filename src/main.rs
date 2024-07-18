@@ -21,12 +21,14 @@ use bzip2::{Compression, Decompress};
 use bzip2::read::{BzEncoder, BzDecoder};
 use anyhow::{Context, Result};
 use itertools::Itertools;
+use mysql::{Conn, OptsBuilder};
 use nohash_hasher::BuildNoHashHasher;
 use quickxml_to_serde::Config;
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
+use zstd_safe::{CCtx, DCtx, create_cdict, CDict, DDict};
 
 use utils::*;
 
@@ -57,12 +59,12 @@ fn main() -> Result<()> {
     //     550
     // )?;
     //
-    // let a = setup_dump(
-    //     src_bz2_simple,
-    //     src_index_simple,
-    //     dst_zstd_simple,
-    //     dst_index_simple,
-    // )?;
+    setup_dump(
+        src_bz2_simple,
+        src_index_simple,
+        dst_zstd_simple,
+        dst_index_simple,
+    )?;
     //
     // let a = setup_dump(
     //     src_bz2,
@@ -73,13 +75,18 @@ fn main() -> Result<()> {
     // sleep(4000);
 
     let ws = WikySource::from_path(
-        dst_index_simple,
-        dst_zstd_simple
+        dst_index,
+        dst_zstd
     ).unwrap();
     // ws.validate_index_dump().unwrap();
 
-    insert_zstd_range(&ws).unwrap();
-    insert_wiky_index(&ws).unwrap();
+    // let opts = OptsBuilder::new()
+    //     .user(Some("root"))
+    //     .db_name(Some("wiky_base"));
+    // let mut conn = Conn::new(opts)?;
+    //
+    // insert_zstd_range(&mut conn, &ws).unwrap();
+    // insert_wiky_index(&mut conn, &ws).unwrap();
 
 
     // bench_bz2(src_bz2, src_index).unwrap();

@@ -60,8 +60,8 @@ create table uni_account (
 init_service_maintained = '''
 create table service_maintained (
     service_id bigint auto_increment primary key,
-    service_name varchar(50) not null,
-    display_name varchar(50) not null
+    service_name char(50) not null,
+    display_name char(50) not null
     -- maybe some other stuff like maintainer list
 ) engine = InnoDB;
 '''.strip()
@@ -197,8 +197,8 @@ create table wiky_index (
         'outlines', 'lists', 'portals', 'glossaries', 'categories', 'indices'
     ),
     main_category binary(32),
-    link_count bigint default 0,
-    sect_count bigint default 0,
+    link_count int default 0,
+    sect_count int default 0,
     foreign key (zstd_st) references zstd_range(st),
     index zstd_st_index (zstd_st),
     index page_id_index (page_id)
@@ -225,7 +225,7 @@ def setup():
         db.cursor.execute(init_zstd_range)
         db.cursor.execute(init_wiky_index)
 
-        db.cursor.execute("alter database wiky_base character set utf8mb4 collate utf8mb4_unicode_ci;")
+        db.cursor.execute("alter table wiky_index convert to character set utf8mb4 collate utf8mb4_unicode_ci;")
     except Exception as e:
         logger.error(f"wiky_db setup error: {repr(e)} - {repr(traceback.format_exc())}")
         print(e, traceback.format_exc())

@@ -28,6 +28,7 @@ use mysql::*;
 use mysql::prelude::*;
 use pyo3::exceptions::PyRuntimeError;
 use utils::*;
+use zstd_safe::{CCtx, DCtx, create_cdict, CDict, DDict};
 
 use crate::misc::*;
 use crate::constant::*;
@@ -121,7 +122,7 @@ pub fn setup_dump<P: AsRef<Path>, Q: AsRef<Path>, O: AsRef<Path>, R: AsRef<Path>
                 decompressed_buf
             }).collect::<Vec<_>>();
 
-            let indexs = ranges.par_iter()
+            let indexs = ranges.iter()
                 .map(|(st, _)| offset_map.get(st).unwrap())
                 .collect::<Vec<_>>();
 
@@ -334,12 +335,7 @@ pub fn set_thread(n: usize) {
     ThreadPoolBuilder::new().num_threads(*THREAD_COUNT.get().unwrap_or(&4)).build_global().unwrap();
 }
 
-pub fn insert_wiky_index(ws: &WikySource) -> Result<()> {
-
-    let opts = OptsBuilder::new()
-        .user(Some("root"))
-        .db_name(Some("wiky_base"));
-    let mut conn = Conn::new(opts)?;
+pub fn insert_wiky_index(conn: &mut Conn, ws: &WikySource) -> Result<()> {
 
     conn.query_drop("delete from wiky_index").unwrap();
     ws.chunks((*THREAD_COUNT.get().unwrap_or(&4)) * 20, |chunk_st, chunk_ed, ranges, zstd_buf| {
@@ -363,12 +359,7 @@ pub fn insert_wiky_index(ws: &WikySource) -> Result<()> {
     }).collect::<Result<()>>()
 }
 
-pub fn insert_zstd_range(ws: &WikySource) -> Result<()> {
-
-    let opts = OptsBuilder::new()
-        .user(Some("root"))
-        .db_name(Some("wiky_base"));
-    let mut conn = Conn::new(opts)?;
+pub fn insert_zstd_range(conn: &mut Conn, ws: &WikySource) -> Result<()> {
 
     conn.query_drop("delete from wiky_index").unwrap();
     conn.query_drop("delete from zstd_range").unwrap();
