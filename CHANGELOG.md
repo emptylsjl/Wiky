@@ -9,6 +9,7 @@
 - impl ranking for wiky page
 - impl display for wiky page
 - add pull pooling system for wiky page
+- design user management system for database
 - add battle system for `wiky_user`
 - add compression to `wiky_index` (currently 4.6GB with 23M row) <br>
   expecting 70% reduction in storage capacity

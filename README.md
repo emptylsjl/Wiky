@@ -1,6 +1,6 @@
 # Wiky
 
-Wiky is an wikipedia based card game
+Wiky is an wikipedia based collection game
 
 ## Setup requirement
 

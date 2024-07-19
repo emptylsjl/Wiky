@@ -92,7 +92,7 @@ pub fn setup_dump<P: AsRef<Path>, Q: AsRef<Path>, O: AsRef<Path>, R: AsRef<Path>
     let offsets = offset_map.keys().copied().sorted().collect_vec();
     let offsets = offsets.iter().zip(offsets[1..].iter().chain(once(&wiki_bz2_len))).collect_vec();
 
-    if Path::new(&dst_zstd).exists() {
+    if dst_zstd.as_ref().exists() {
         fs::remove_file(&dst_zstd)?;
     }
     let mut zstd_fd = fs::OpenOptions::new()
