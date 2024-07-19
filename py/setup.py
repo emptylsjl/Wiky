@@ -243,18 +243,18 @@ def setup():
     logger.info(f"wiky_db table creation complete")
 
 
-def setup_wiky():
+def setup_wiky_index():
     import wiky
 
-    src_bz2_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-simple.xml.bz2"
-    src_index_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index-simple.txt"
-    src_bz2 = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream.xml.bz2"
-    src_index = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index.txt"
+    src_bz2_simple = "path/to/dump"
+    src_index_simple = "path/to/dump"
+    src_bz2 = "path/to/dump"
+    src_index = "path/to/dump"
 
-    dst_zstd_simple = "C:/a/enwiki/enwiki-20240601-pages-simple.xml.zstd"
-    dst_index_simple = "C:/a/enwiki/enwiki-20240601-index-remapped-simple.txt"
-    dst_zstd = "C:/a/enwiki/enwiki-20240601-pages.xml.zstd"
-    dst_index = "C:/a/enwiki/enwiki-20240601-index-remapped.txt"
+    dst_zstd_simple = "path/to/export.zstd"
+    dst_index_simple = "path/to/export.txt"
+    dst_zstd = "path/to/export.zstd"
+    dst_index = "path/to/export.txt"
 
     import wiky
     print(wiky.__all__)
@@ -274,5 +274,4 @@ def setup_wiky():
 
 if __name__ == '__main__':
     setup()
-    setup_wiky()
 

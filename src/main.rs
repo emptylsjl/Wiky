@@ -41,56 +41,48 @@ use wiky_source::*;
 
 fn main() -> Result<()> {
 
-    set_thread(20);
+    set_thread(8);
 
-    let src_bz2_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-simple.xml.bz2";
-    let src_index_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index-simple.txt";
-    let src_bz2 = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream.xml.bz2";
-    let src_index = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index.txt";
+    let src_bz2_simple = "path/to/dump";
+    let src_index_simple = "path/to/dump";
+    let src_bz2 = "path/to/dump";
+    let src_index = "path/to/dump";
 
-    let dst_zstd_simple = "C:/a/enwiki/enwiki-20240601-pages-simple.xml.zstd";
-    let dst_index_simple = "C:/a/enwiki/enwiki-20240601-index-remapped-simple.txt";
-    let dst_zstd = "C:/a/enwiki/enwiki-20240601-pages.xml.zstd";
-    let dst_index = "C:/a/enwiki/enwiki-20240601-index-remapped.txt";
+    let dst_zstd_simple = "path/to/export.zstd";
+    let dst_index_simple = "path/to/export.txt";
+    let dst_zstd = "path/to/export.zstd";
+    let dst_index = "path/to/export.txt";
 
-    // let a = site_info(
-    //     "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream.xml.bz2",
-    //     "C:/a/enwiki/enwiki-20240601-site-info.txt",
-    //     550
-    // )?;
-    //
-    setup_dump(
-        src_bz2_simple,
-        src_index_simple,
-        dst_zstd_simple,
-        dst_index_simple,
+    site_info(
+        src_bz2,
+        "enwiki-20240601-site-info.txt",
+        550
     )?;
-    //
-    // let a = setup_dump(
-    //     src_bz2,
-    //     src_index,
-    //     dst_zstd,
-    //     dst_index,
-    // )?;
-    // sleep(4000);
+
+    setup_dump(
+        src_bz2,
+        src_index,
+        dst_zstd,
+        dst_index,
+    )?;
 
     let ws = WikySource::from_path(
         dst_index,
         dst_zstd
     ).unwrap();
-    // ws.validate_index_dump().unwrap();
 
-    // let opts = OptsBuilder::new()
-    //     .user(Some("root"))
-    //     .db_name(Some("wiky_base"));
-    // let mut conn = Conn::new(opts)?;
-    //
-    // insert_zstd_range(&mut conn, &ws).unwrap();
-    // insert_wiky_index(&mut conn, &ws).unwrap();
-
+    ws.validate_index_dump().unwrap();
 
     // bench_bz2(src_bz2, src_index).unwrap();
     // ws.bench_zstd().unwrap();
+
+    let opts = OptsBuilder::new()
+        .user(Some("root"))     // change username maybe
+        .db_name(Some("wiky_base"));
+    let mut conn = Conn::new(opts)?;
+
+    insert_zstd_range(&mut conn, &ws).unwrap();
+    insert_wiky_index(&mut conn, &ws).unwrap();
 
     // use quickxml_to_serde::xml_string_to_json;
     // let mut xml = fs::read(r"C:\a\enwiki\debug\pages82311823-83633146")?;
