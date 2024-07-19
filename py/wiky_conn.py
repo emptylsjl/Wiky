@@ -37,27 +37,28 @@ type Connection = mariadb.connections.Connection
 
 
 class DBConn:
-    def __init__(self, user, pwd="", host="localhost", port=3306, use_dict=True):
+    def __init__(self, user, pwd="", host="localhost", port=3306, database=None):
         try:
             conn = mariadb.connect(
                 user=user,
                 password=pwd,
                 host=host,
                 port=port,
+                database=database
             )
             self.conn = conn
             self.cursor = conn.cursor()
 
         except mariadb.Error as e:
-            print(f"connecting to MariaDB fail: {e} - {traceback.format_exc()}")
+            logger.error(f"connecting to MariaDB fail: {repr(user)}:{repr(e)} - {repr(traceback.format_exc())}")
             raise e
 
     def close(self):
         try:
             self.conn.close()
-            print("disconnected")
+            logger.info("disconnected")
         except mariadb.Error as e:
-            print(f"disconnect fail: {e} - {traceback.format_exc()}")
+            logger.error(f"disconnect fail: {e} - {traceback.format_exc()}")
             raise e
 
 
@@ -66,12 +67,7 @@ if __name__ == '__main__':
     #
     # wikitext = decode_page(550, 12)
     # print(wikitext.find("revision").find("text").text)
-
-    import wiky
-    print(wiky.__all__)
-    a = wiky.WikySource("enwiki-20240601-index-remapped-simple.txt",
-                        "enwiki-20240601-pages-simple.xml.zstd")
-    a.validate()
+    # a.validate_index_dump()
 
     # print(a.zstd_len)
     pass

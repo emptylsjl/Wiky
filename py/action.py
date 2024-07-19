@@ -74,8 +74,9 @@ def register_wiky(
 ) -> (bool, str):
     valid = ensure_char(username, 20)
     valid = valid and ensure_char(display_name, 20)
-    valid = valid and validate_phone_str(username, 16)
-    valid = valid and validate_mail_str(username, 50)
+    valid = valid and validate_mail_str(mail, 50)
+    if phone:
+        valid = valid and validate_phone_str(phone, 16)
     if not valid:
         logger.error(f'register_wiky invalid:{repr(username)}')
         return False
@@ -97,7 +98,7 @@ def register_wiky(
                 (uni_uuid, username, display_name, pwd_hash, mail, phone, status)
                 values (%s, %s, %s, %s, %s, %s, %s)
                 '''.strip(),
-                (uuid.uuid4().bytes, username, display_name, pwd_hash, mail, phone, "pending")
+                (uuid.uuid4().bytes, username, display_name, pwd_hash, mail, phone, "live")
             )
             incr_id = db.cursor.lastrowid
         else:
@@ -110,7 +111,17 @@ def register_wiky(
             (uni_incr_id, service_id, user_uuid, username, display_name, status)
             values (%s, %s, %s, %s, %s, %s)
             '''.strip(),
-            (incr_id, 1, uuid.uuid4().bytes, username, display_name, "pending")
+            (incr_id, 1, uuid.uuid4().bytes, username, display_name, "live")
+        )
+        wiky_incr_id = db.cursor.lastrowid
+
+        db.cursor.execute(
+            '''
+            insert into wiky_user_profile 
+            (uni_incr_id, wiky_incr_id)
+            values (%s, %s)
+            '''.strip(),
+            (incr_id, wiky_incr_id)
         )
 
         send_mail()
@@ -181,8 +192,8 @@ class WikySession:
 def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
     try:
         db.conn.begin()
-        cursor = db.conn.cursor(dictionary=True)
-        db.cursor.execute(
+        dict_cursor = db.conn.cursor(dictionary=True)
+        dict_cursor.execute(
             """
             select 
             t1.incr_id, t1.uni_incr_id, t1.username, t1.user_uuid, t1.status, 
@@ -194,23 +205,24 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
             (username,)
         )
 
-        row = db.cursor.fetchone()
+        row = dict_cursor.fetchone()
         uni_incr, wiky_incr, wiky_uuid, name = (
-            row['t1.uni_incr_id'], row['t1.incr_id'], row['t1.user_uuid'], row['t1.username'],
+            row['uni_incr_id'], row['incr_id'], row['user_uuid'], row['username'],
         )
 
-        auth_ok = row['t0.pwd_hash'] == r.sha265(pwd)
-        auth_ok = auth_ok and (row['t0.status'] == row['t1.status'] == "live")
+        if not row['pwd_hash'] == r.sha265(pwd):
+            logger.warning(f"wiky_auth fail: {repr(username)} - password_missmatch")
+            return (False, "password_missmatch")
 
-        if not auth_ok:
-            logger.warning(f"wiky_auth fail: {repr(username)}")
-            return (False, "auth_fail")
+        if not row['status'] == row['status'] == "live":
+            logger.warning(f"wiky_auth fail: {repr(username)} - account_invalid")
+            return (False, "account_invalid")
 
         time_now = time.time()
         token_now = username + r.sha265(username + str(time_now))
         validity = datetime.now() + timedelta(days=7)
 
-        cursor.execute(
+        dict_cursor.execute(
             '''
             insert into wiky_session 
             (uni_incr_id, wiky_incr_id, user_uuid, session_token, token_validity)
@@ -297,7 +309,7 @@ def add_balance(db: DBConn, ws: WikySession, amount) -> (bool, str):
             return (False, "invalid name")
 
         db.cursor.execute(
-            "update wiky_user_profile balance = %s where wiky_incr_id = %s",
+            "update wiky_user_profile set balance = %s where wiky_incr_id = %s",
             (profile_row[1] + amount, ws.wiky_incr)
         )
         db.conn.commit()
@@ -314,7 +326,11 @@ def pull_wiky(db: DBConn, ws: WikySession, amount) -> (bool, str):
     try:
         db.conn.begin()
         db.cursor.execute(
-            "select wiky_incr_id, balance from wiky_user_profile where wiky_incr_id = %s",
+            '''
+            select t0.wiky_incr_id, t0.balance, t1.wiky_storage
+            from wiky_user_profile t0 join wiky_user_storage t1 
+            where t0.wiky_incr_id = %s
+            ''',
             (ws.wiky_incr,)
         )
         profile_row = db.cursor.fetchone()

@@ -47,7 +47,7 @@ create table uni_account (
     username char(20) unique,
     display_name char(30) not null,
     pwd_hash char(128) not null,
-    mail char(60) unique,
+    mail char(60) not null,
     phone char(20),
     status enum('pending', 'live', 'hold', 'yanked', 'archive', 'deleted') not null,
     time_created timestamp default current_timestamp,
@@ -70,7 +70,7 @@ init_wiky_user_account = '''
 create table wiky_user_account (
     incr_id bigint auto_increment primary key,
     uni_incr_id bigint unique,
-    service_id bigint unique,
+    service_id bigint not null,
     username char(20) unique,
     user_uuid binary(16) unique,
     display_name char(30) not null,
@@ -243,6 +243,36 @@ def setup():
     logger.info(f"wiky_db table creation complete")
 
 
+def setup_wiky():
+    import wiky
+
+    src_bz2_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-simple.xml.bz2"
+    src_index_simple = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index-simple.txt"
+    src_bz2 = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream.xml.bz2"
+    src_index = "C:/a/enwiki/dump/enwiki-20240601-pages-articles-multistream-index.txt"
+
+    dst_zstd_simple = "C:/a/enwiki/enwiki-20240601-pages-simple.xml.zstd"
+    dst_index_simple = "C:/a/enwiki/enwiki-20240601-index-remapped-simple.txt"
+    dst_zstd = "C:/a/enwiki/enwiki-20240601-pages.xml.zstd"
+    dst_index = "C:/a/enwiki/enwiki-20240601-index-remapped.txt"
+
+    import wiky
+    print(wiky.__all__)
+
+    wiky.setup_dump(
+        src_bz2_simple,
+        src_index_simple,
+        dst_zstd_simple,
+        dst_index_simple,
+    )
+
+    time.sleep(2)
+
+    a = wiky.WikySource(dst_index_simple, dst_zstd_simple)
+    a.validate_index_dump()
+
+
 if __name__ == '__main__':
     setup()
+    setup_wiky()
 

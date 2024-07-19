@@ -5,6 +5,7 @@ import json
 import logging
 import pickle
 import copy
+import random
 import re
 import os
 import sys
@@ -326,6 +327,19 @@ def elevated(runas=True):
         sys.exit()
     return is_elevated
 
+
+def gen_rnd(length=15, allow="1"):
+    a = ""
+    if "1" in allow:
+        a += "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM"
+    if "!" in allow:
+        a += "!@#$%&*_-+="
+    if "~" in allow:
+        a += "~`^|\\:;,./?"
+    if "(" in allow:
+        a += "()<>{}[]'\""
+
+    return [random.randrange(len(a)) for i in range(length)]
 
 if __name__ == '__main__':
 

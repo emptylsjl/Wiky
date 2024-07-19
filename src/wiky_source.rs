@@ -181,7 +181,8 @@ impl WikySource {
         let conf = Config::new_with_defaults();
         let json = xml_string_to_json(format!("<root>{chunk_text}</root>"), &conf)
             .map_err(|e| py_err("malformed ".to_owned()+&e.to_string()))?;
-        let a = json.get("i");
+        // let a = json[""];
+        Ok(json.to_string())
     }
 
     pub fn validate_index_dump(&self) -> PyResult<()> {
