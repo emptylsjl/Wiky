@@ -1,3 +1,5 @@
+#![feature(thread_id_value)]
+
 mod wiky_source;
 mod constant;
 mod setup;
@@ -34,11 +36,6 @@ use setup::*;
 use constant::*;
 use wiky_source::*;
 
-#[pyfunction]
-pub fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
-
 #[pymodule]
 #[pyo3(name = "wiky")]
 mod pyo3_wiki {
@@ -53,8 +50,8 @@ mod pyo3_wiki {
     }
 
     #[pyfunction]
-    fn setup_dump(src_bz2: &str, src_index: &str, dst_zstd: &str, dst_index: &str) -> PyResult<()> {
-        setup::setup_dump(src_bz2, src_index, dst_zstd, dst_index).into_py_result()
+    fn setup_dump_chunk(src_bz2: &str, src_index: &str, dst_zstd: &str, dst_index: &str) -> PyResult<()> {
+        setup::setup_dump_chunk(src_bz2, src_index, dst_zstd, dst_index).into_py_result()
     }
 
     #[pyfunction]

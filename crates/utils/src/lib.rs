@@ -30,18 +30,19 @@ use std::{fmt, fs, io, mem, ptr, slice, string, thread, time};
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fmt::{Debug, Display};
+use std::ops::Range;
 use std::time::{Duration, Instant, SystemTime};
 use std::process::Command;
-
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+
 use aes_gcm::{AeadInPlace, Aes256Gcm, Key, KeyInit, Nonce};
 use glam::*;
 use num_traits::{clamp, Float};
 use anyhow::{anyhow, Context, Result};
 use rand::Rng;
 use itertools::Itertools;
-use once_cell::sync::Lazy;
+use once_cell::sync::{Lazy, OnceCell};
 use rand::prelude::*;
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
@@ -55,6 +56,7 @@ use windows::Win32::System::LibraryLoader::*;
 use windows::Win32::UI::WindowsAndMessaging::*;
 use windows::Win32::UI::Input::KeyboardAndMouse::*;
 use winreg::{RegKey, RegValue};
+
 pub type DynResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 pub fn rand_from<Q: Copy, W: FromIterator<Q>>(li: &[Q], len: usize) -> W {
@@ -206,6 +208,36 @@ pub fn sleep(millis: u64) {
 
 pub async fn tokio_sleep(millis: u64) {
     tokio::time::sleep(Duration::from_millis(millis)).await
+}
+
+pub fn oc_get<T>(inited: &OnceCell<T>) -> &T {
+    inited.get().unwrap()
+}
+
+pub fn trim_pos(s: &[u8]) -> (usize, usize) {
+    (
+        s.iter()
+            .position(|b| !matches!(b, b' ' | b'\r' | b'\n' | b'\t'))
+            .unwrap_or(0),
+        s.iter()
+            .rev()
+            .position(|b| !matches!(b, b' ' | b'\r' | b'\n' | b'\t'))
+            .map(|pos| s.len() - pos)
+            .unwrap_or(0)
+    )
+}
+
+pub fn trim_s(s: &str) -> &str {
+    let s = s.as_bytes();
+    let (st, ed) = trim_pos(s);
+    std::str::from_utf8(&s[st..ed]).unwrap()
+}
+
+// pub fn trim_r<T: AsRef<[u8]>>(s: T) -> Range<usize> {
+pub fn trim_r(s: &str) -> Range<usize> {
+    let s = s.as_bytes();
+    let (st, ed) = trim_pos(s);
+    st..ed
 }
 
 

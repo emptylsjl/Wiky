@@ -1,0 +1,2212 @@
+  <page>
+    <title>Help:Wikitext</title>
+    <ns>12</ns>
+    <id>25302132</id>
+    <revision>
+      <id>1225682286</id>
+      <parentid>1214922636</parentid>
+      <timestamp>2024-05-26T01:52:26Z</timestamp>
+      <contributor>
+        <username>Wik6516</username>
+        <id>45091103</id>
+      </contributor>
+      <minor />
+      <comment>formatting</comment>
+      <origin>1225682286</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="85159" sha1="bamg207szjh2plik8rtcxdltfxfnak9" xml:space="preserve">{{short description|Wikipedia help page}}
+{{pp-move-indef|small=yes}}
+{{pp-vandalism|small=yes}}
+{{for|the encyclopedic section on wikitext|Wiki#Editing}}
+{{redirect|H:WT|the welcoming templates|Wikipedia:Welcoming committee/Welcome templates}}
+{{Locutions pages header}}
+{{Wikipedia how to|H:WT|H:MARKUP|H:WIKICODE}}
+{{Wikitext navbox}}
+The markup language called '''wikitext''', also known as '''wiki markup''' or '''wikicode''', consists of the syntax and keywords used by the [[MediaWiki]] software to format a page. (Note the lowercase spelling of these terms.{{efn|Wikipedia is an encyclopedia that uses wikitext—wikitext is not named after Wikipedia.}}) To learn how to see this [[hypertext markup]], and to save an edit, see [[Help:Editing]]. Generally, coding can be copied and pasted, without writing new code. There is a short list of markup and tips at [[Help:Cheatsheet]].
+
+In addition to wikitext, some [[HTML element]]s are also allowed for presentation formatting. See [[Help:HTML in wikitext]] for information on this.
+{{TOC limit}}
+
+==Layout==
+&lt;!--{{VE documentation}} Over prominent and confusing --&gt;
+
+===Sections===
+Article sections in a page will follow that page's [[WP:LEAD|lead]] or introduction and, if there are four or more, the [[WP:TOC|table of contents]].
+
+====Section headings====
+{{see|Help:Section|Wikipedia:Manual of Style#Section headings}}
+
+The &lt;code&gt;=&lt;/code&gt; through &lt;code&gt;======&lt;/code&gt; markup are headings for the sections with which they are associated.
+* A single = is styled as the article title and should not be used within an article.
+* Headings are styled through [[CSS]] and add an &lt;code&gt;[edit]&lt;/code&gt; link. [[Help:Cascading Style Sheets#Wiki headings|See this section]] for the relevant CSS.
+* Four or more headings cause a table of contents to be generated automatically.
+* Do not use &lt;em&gt;any&lt;/em&gt; markup after the final heading markup – this will either break the heading, or will cause the heading to not be included in an edit summary.
+
+{{#lst:Help:HTML in wikitext|WIKI_section}}
+
+Templates: {{tl|fake heading}} for use in documentation.
+
+====Horizontal rule====
+{{see|WP:LINE}}
+
+The horizontal rule represents a paragraph-level thematic break. Do not use in article content, as rules are used only after main sections, and this is automatic.
+
+{{markup
+|&lt;nowiki&gt;----&lt;/nowiki&gt;
+|{{crlf2}}
+----
+}}
+
+HTML equivalent: {{tag|hr|s}} (which can be indented, whereas &lt;code&gt;----&lt;/code&gt; always starts at the left margin.)
+
+====Table of contents====
+{{see|WP:TOC}}
+
+When a page has at least four headings, a table of contents (TOC) will automatically appear after the lead and before the first heading. The TOC can be controlled by magic words or templates:
+* &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;__FORCETOC__&lt;/syntaxhighlight&gt; forces the TOC to appear at the normal location regardless of the number of headings.
+* &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;__TOC__&lt;/syntaxhighlight&gt; forces the TOC to appear at the point where the magic word is inserted instead of the normal location.
+* &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;__NOTOC__&lt;/syntaxhighlight&gt; disables the TOC entirely.
+* {{tl|TOC limit}} template can be used to control the depth of subsections included in the TOC. This is useful where the TOC is long and unwieldy.
+* [[:Category:Wikipedia table of contents templates]] contains a number of specialized TOC templates.
+
+===Line breaks===
+&lt;!--[[Help:Breaks]] links directly here.--&gt;
+{{see|Help:Line-break handling|Wikipedia:Line breaks usage|Wikipedia:Manual of Style/Accessibility#Indentation}}
+
+Line breaks or newlines are used to add whitespace between lines, such as separating paragraphs.
+* A line break that is visible in the content is inserted by pressing {{key press|Enter}} twice.
+** It's good practice to do this by itself when publishing changes. Leave additional changes to another edit because otherwise only the line break will be highlighted [https://en.wikipedia.org/w/index.php?title=Silvia_Vald%C3%A9s&amp;diff=prev&amp;oldid=1134979713 in the diff].
+* Pressing {{key press|Enter}} once will place a line break in the markup, but it will not show in the rendered content, except when using list markup.
+
+* Markup such as bold or italics will be terminated at a line break.
+* Blank lines within indented wikitext should not be added due to accessibility issues.
+
+{{markup
+|&lt;nowiki&gt;A single newline here
+has no effect on the layout.
+
+But an empty line starts a new paragraph,
+or ends a list or an indented part.
+&lt;/nowiki&gt;
+|{{crlf2}}
+A single newline here
+has no effect on the layout.
+
+But an empty line starts a new paragraph,
+or ends a list or an indented part.
+}}
+
+HTML equivalent: {{tag|br|o}} or {{tag|br|s}} can be used to break line layout.
+
+Templates for line breaks:
+* {{tl|break}} can add multiple line breaks.
+* {{tl|-}} and {{tl|clear}} adds a break with styling, to clear floating elements. Often used to prevent text from flowing next to unrelated tables or images.
+
+Unbulleted list:
+* {{tl|plainlist}} and {{tl|unbulleted list}} both create an unbulleted list.
+
+===Indent text===
+{{see|WP:INDENT|Wikipedia:Manual of Style/Accessibility#Indentation}}
+
+Indentation is most commonly used on talk pages.
+
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Indentation as used on talk pages:
+:Each colon at the start of a line
+::causes the line to be indented by three more character positions.
+:::(The indentation persists
+so long as no carriage return or line break is used.)
+:::Repeat the indentation at any line break.
+::::Use an extra colon for each response.
+:::::And so forth ...
+::::::And so on ...
+{{Outdent|::::::}}The outdent template can give a visual indicator that we're deliberately cancelling the indent (6 levels here)&lt;/syntaxhighlight&gt;
+|Indentation as used on talk pages:
+:Each colon at the start of a line
+::causes the line to be indented by three more character positions.
+:::(The indentation persists
+so long as no carriage return or line break is used.)
+:::Repeat the indentation at any line break.
+::::Use an extra colon for each response.
+:::::And so forth ...
+::::::And so on ...
+{{Outdent|::::::}}The outdent template can give a visual indicator that we're deliberately cancelling the indent (6 levels here)}}
+
+Templates: {{tl|outdent}}, {{tl|outdent2}}
+
+===Blockquote===
+
+When there is a need for separating a block of text. This is useful for (as the name says) inserting blocks of quoted (and cited) text.
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Normal text
+&lt;blockquote&gt;
+The '''blockquote''' tag will indent both margins when needed instead of the left margin only as the colon does.
+&lt;/blockquote&gt;
+Normal text
+&lt;/syntaxhighlight&gt;
+|Normal text
+&lt;blockquote&gt;
+The '''blockquote''' tag will indent both margins when needed instead of the left margin only as the colon does.
+&lt;/blockquote&gt;
+Normal text
+}}
+This uses an HTML tag; template {{tl|quote}} results in the same render.
+
+===Center text===
+{{See also|Span and div|HTML tag|Template:Align}}
+{{markup
+|&lt;syntaxhighlight lang=&quot;html&quot; inline style=&quot;border:none; background:transparent;&quot;&gt;&lt;div class=&quot;center&quot; style=&quot;width: auto; margin-left: auto; margin-right: auto;&quot;&gt;Centered text&lt;/div&gt;&lt;/syntaxhighlight&gt;
+|2=&lt;div class=&quot;center&quot; style=&quot;width: auto; margin-left: auto; margin-right: auto;&quot;&gt;Centered text&lt;/div&gt;
+}}
+
+Template {{tl|center}} uses the same markup. To center a table, see [[Help:Table#Centering tables]].
+Please do not use {{tag|center}} tags, as it is obsolete.
+
+===Align text to right===
+
+You can align content in a separate container:
+
+{{markup
+|1=&lt;syntaxhighlight lang=&quot;html&quot; inline style=&quot;border:none; background:transparent;&quot;&gt;&lt;div style=&quot;text-align: right; direction: ltr; margin-left: 1em;&quot;&gt;Text on the right&lt;/div&gt;&lt;/syntaxhighlight&gt;
+|2=Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.&lt;div style=&quot;text-align: right; direction: ltr; margin-left: 1em;&quot;&gt;Text on the right&lt;/div&gt;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+}}
+
+Or; make the text float around it:
+
+{{markup
+|1=&lt;syntaxhighlight lang=&quot;html&quot; inline style=&quot;border:none; background:transparent;&quot;&gt;&lt;div class=&quot;floatright&quot;&gt;Text on the right&lt;/div&gt;&lt;/syntaxhighlight&gt;
+|2=Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.&lt;div class=&quot;floatright&quot;&gt;Text on the right&lt;/div&gt;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+|3=&lt;nowiki&gt;{{stack|Text on the right}}&lt;/nowiki&gt;
+|4=Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.{{stack|Text on the right}}Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+}}
+
+===Lists===
+{{see|Help:List|MOS:LIST}}
+
+Do not leave blank lines between items in a list unless there is a reason to do so, since this causes the MediaWiki software to interpret each item as beginning a new list.
+
+====Unordered lists====
+{{Shortcut|H:UL}}
+
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;* Item1
+* Item2
+* Item3
+* Item4
+** Sub-item 4 a)
+*** Sub-item 4 a) 1.
+**** Sub-item 4 a) 1. i)
+**** Sub-item 4 a) 1. ii)
+** Sub-item 4 b)
+* Item5&lt;/syntaxhighlight&gt;
+|{{crlf2}}
+* Item1
+* Item2
+* Item3
+* Item4
+** Sub-item 4 a)
+*** Sub-item 4 a) 1.
+**** Sub-item 4 a) 1. i)
+**** Sub-item 4 a) 1. ii)
+** Sub-item 4 b)
+* Item5
+}}
+
+====Ordered lists====
+{{Shortcut|H:OL}}
+
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+# Item1
+# Item2
+# Item3
+# Item4
+## Sub-item 1
+### Sub-sub-item
+#### Sub-sub-sub-item
+## Sub-item 2
+# Item5
+&lt;/syntaxhighlight&gt;
+|{{crlf2}}
+# Item1
+# Item2
+# Item3
+# Item4
+## Sub-item 1
+### Sub-sub-item
+#### Sub-sub-sub-item
+## Sub-item 2
+# Item5
+}}
+
+===={{Anchor|DL}}Description lists====
+{{anchors|Definition lists|Association lists|H:DL}}
+{{Shortcut|H:DL}}
+
+To list terms and definitions, start a new line with a semicolon (;) followed by the term. Then, type a colon (:) followed by a definition. The format can also be used for other purposes, such as make and models of vehicles, etc.
+
+''Description lists''&lt;!--HTML5 name--&gt; (formerly ''definition lists''&lt;!--HTML4 name--&gt;, and a.k.a. ''association lists''&lt;!--draft HTML5 name--&gt;) consist of group names corresponding to values. Group names (terms) are in bold. Values (definitions) are indented. Each group &lt;em&gt;must&lt;/em&gt; include one or more definitions. For a single or first value, the &lt;code&gt;:&lt;/code&gt; can be placed on the same line after &lt;code&gt;;&lt;/code&gt; – but subsequent values must be placed on separate lines.
+
+{{hatnote-inline|Do not use a semicolon (;) simply to bold a line without defining a value using a colon (:). This usage renders invalid [[HTML5]] and creates issues with [[screen reader]]s. Also, use of a colon to indent (other than for talk page responses) may also render invalid HTML5 and cause accessibility issues per [[MOS:INDENTGAP]].}}
+
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;; Term : Definition1&lt;/syntaxhighlight&gt;
+|{{crlf2}}
+; Term : Definition1
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;; Term
+: Definition1
+: Definition2
+: Definition3
+: Definition4&lt;/syntaxhighlight&gt;
+|{{crlf2}}
+; Term
+: Definition1
+: Definition2
+: Definition3
+: Definition4
+}}
+
+HTML equivalent: {{tag|dl|o}} {{tag|dt}}, {{tag|dd}} {{tag|dl|c}}
+
+Templates: {{tl|defn}}
+
+===Retaining newlines and spaces===
+{{shortcut|H:POEM}}
+
+The MediaWiki software suppresses single newlines and converts lines starting with a space to preformatted text in a dashed box. HTML suppresses multiple spaces. It is often desirable to retain these elements for poems, lyrics, mottoes, oaths and the like. The [[mw:Extension:Poem|Poem]] extension adds HTML-like {{tag|poem}} tags to maintain newlines and spaces. These tags may be used inside other tags such as {{tag|blockquote}}; the template {{tlx|poemquote}} provides a convenient shorthand. [[H:CSS|CSS styles]] may be applied to this tag, e.g.: &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;&lt;poem style=&quot;margin-left: 2em;&quot;&gt;&lt;/syntaxhighlight&gt;.
+
+{{markup
+|&lt;syntaxhighlight lang=&quot;xml&quot;&gt;&lt;poem&gt;
+In Xanadu did Kubla Khan
+  A stately pleasure-dome decree:
+Where Alph, the sacred river, ran
+  Through caverns measureless to man
+Down to a sunless sea.
+
+So twice five miles of fertile ground
+  With walls and towers were girdled round:
+And there were gardens bright with sinuous rills,
+  Where blossomed many an incense-bearing tree;
+And here were forests ancient as the hills,
+  Enfolding sunny spots of greenery.
+&lt;/poem&gt;&lt;/syntaxhighlight&gt;
+|&lt;poem&gt;
+In Xanadu did Kubla Khan
+  A stately pleasure-dome decree:
+Where Alph, the sacred river, ran
+  Through caverns measureless to man
+Down to a sunless sea.
+
+So twice five miles of fertile ground
+  With walls and towers were girdled round:
+And there were gardens bright with sinuous rills,
+  Where blossomed many an incense-bearing tree;
+And here were forests ancient as the hills,
+  Enfolding sunny spots of greenery.
+&lt;/poem&gt;
+}}
+
+Poems and their translation can be presented side by side, and the language can be indicated with &lt;code&gt;lang=&quot;xx&quot;&lt;/code&gt;. Following the last side-by-side block, {{tlx|Clear|left}} must be used to cancel &lt;code&gt;&quot;float:left;&quot;&lt;/code&gt; and to re-establish normal flow. Note that this method does not require [[#Tables|a table]] and its columns to achieve the side-by-side presentation.
+
+'''Markup'''
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;poem lang=&quot;fr&quot; style=&quot;float:left;&quot;&gt;Frère Jacques, frère Jacques,
+Dormez-vous? Dormez-vous?
+Sonnez les matines! Sonnez les matines!
+Ding, dang, dong. Ding, dang, dong.&lt;/poem&gt;
+&lt;poem style=&quot;margin-left:2em; float:left;&quot;&gt;Are you sleeping? Are you sleeping?
+Brother John, Brother John,
+Morning bells are ringing! Morning bells are ringing!
+Ding, dang, dong. Ding, dang, dong.&lt;/poem&gt;{{Clear|left}}&lt;/syntaxhighlight&gt;
+'''Renders as'''
+&lt;poem lang=&quot;fr&quot; style=&quot;float:left;&quot;&gt;Frère Jacques, frère Jacques,
+Dormez-vous? Dormez-vous?
+Sonnez les matines! Sonnez les matines!
+Ding, dang, dong. Ding, dang, dong.&lt;/poem&gt;
+&lt;poem style=&quot;margin-left:2em; float:left;&quot;&gt;Are you sleeping? Are you sleeping?
+Brother John, Brother John,
+Morning bells are ringing! Morning bells are ringing!
+Ding, dang, dong. Ding, dang, dong.&lt;/poem&gt;{{Clear|left}}
+
+==Format==
+
+===Text formatting===
+
+{| class=&quot;wikitable&quot;
+|- style=&quot;vertical-align: top;&quot;
+!style=&quot;width:34%;&quot;| Description
+!style=&quot;width:33%;&quot;| What you type
+!style=&quot;width:33%;&quot;| What it looks like
+
+&lt;!---------- italics, bold, smallcaps -----------&gt;
+|- id=&quot;emph&quot; style=&quot;vertical-align: top;&quot;
+|
+''italics'', '''bold''', {{smallcaps|small capital letters}}
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+To ''italicize text'', put two consecutive apostrophes on each side of it.
+
+Three apostrophes each side will '''bold the text'''.
+
+Five consecutive apostrophes on each side (two for italics plus three for bold) produces '''''bold italics'''''.
+
+'''''Italic and bold formatting''''' works correctly only within a single line.
+
+For text as {{smallcaps|small caps}}, use the template {{tl|smallcaps}}.
+&lt;/syntaxhighlight&gt;
+|
+To ''italicize text'', put two consecutive apostrophes on each side of it.
+
+Three apostrophes each side will '''bold the text'''.
+
+Five consecutive apostrophes on each side (two for italics plus three for bold) produces '''''bold italics'''''.
+
+'''''Italic and bold formatting''''' works correctly only within a single line.
+
+To reverse this effect where it has been automatically applied, use {{tl|nobold}} and {{tl|noitalic}}.
+
+For text as {{smallcaps|small caps}}, use the template {{tl|smallcaps}}.
+
+&lt;!------------- inline source code --------------&gt;
+|-
+|
+Small chunks of [[source code]] within a line of normal text.
+
+Code is displayed in a [[monospace font]].
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;function &lt;code&gt;int m2()&lt;/code&gt; is nice.&lt;/syntaxhighlight&gt;
+|
+function &lt;code&gt;int m2()&lt;/code&gt; is nice.
+
+&lt;!------------ syntax highlighting --------------&gt;
+|- id=&quot;syntaxhighlight&quot; style=&quot;vertical-align:top;&quot;
+|
+[[mw:Extension:SyntaxHighlight|Syntax highlighting]] for source code.
+
+Computer code has colored text and more stringent formatting. For example, to define a function: &lt;code&gt;int m2()&lt;/code&gt;, with highlights, in C++.
+
+See [https://github.com/wikimedia/mediawiki-extensions-SyntaxHighlight_GeSHi/blob/master/SyntaxHighlight.lexers.php here] for a full list of supported languages that can be put in &lt;code&gt;lang=&quot;????&quot;&lt;/code&gt;
+|
+&lt;pre&gt;&lt;nowiki&gt;&lt;syntaxhighlight lang=&quot;cpp&quot;&gt;
+#include &lt;iostream&gt;
+int m2 (int ax, char *p_ax) {
+  std::cout &lt;&lt;&quot;Hello World!&quot;;
+  return 0;
+}&lt;/syntaxhighlight&gt;&lt;/nowiki&gt;&lt;/pre&gt;
+|
+&lt;syntaxhighlight lang=&quot;cpp&quot;&gt;
+#include &lt;iostream&gt;
+int m2 (int ax, char *p_ax) {
+  std::cout &lt;&lt;&quot;Hello World!&quot;;
+  return 0;
+}&lt;/syntaxhighlight&gt;
+
+&lt;!---------------- &lt;small&gt; text -----------------&gt;
+|-
+|
+&lt;small&gt;Small text&lt;/small&gt;
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+Use &lt;small&gt;small text&lt;/small&gt; only
+when necessary.
+&lt;/syntaxhighlight&gt;
+|
+Use &lt;small&gt;small text&lt;/small&gt; only when necessary.
+
+&lt;!---------------- &lt;small&gt; span -----------------&gt;
+|-
+|
+&lt;small style=&quot;font-size:87%;&quot;&gt;a &lt;nowiki&gt;&lt;small&gt;&lt;/nowiki&gt; span&lt;/small&gt;
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+To match, for example, the font-size used in an [[Help:Visual file markup#Caption|image caption]], the &quot;small&quot; tag can also be used to
+&lt;small style=&quot;font-size:87%;&quot;&gt;reduce a text's font-size to 87%&lt;/small&gt;.
+&lt;/syntaxhighlight&gt;
+|
+To match, for example, the font-size used in an [[Help:Visual file markup#Caption|image caption]], the &quot;small&quot; tag can also be used to &lt;small style=&quot;font-size:87%;&quot;&gt;reduce a text's font-size to 87%&lt;/small&gt;.
+
+&lt;!----------------- &lt;big&gt; text ------------------&gt;
+|-
+|
+&lt;big&gt;Big text&lt;/big&gt;
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+Better not use &lt;big&gt;big text&lt;/big&gt;, unless &lt;small&gt;it's &lt;big&gt;within&lt;/big&gt; small&lt;/small&gt; text.
+&lt;/syntaxhighlight&gt;
+|
+Better not use &lt;big&gt;big text&lt;/big&gt;, unless &lt;small&gt;it's &lt;big&gt;within&lt;/big&gt; small&lt;/small&gt; text.
+
+&lt;!-------------------- nbsp ---------------------&gt;
+|-
+|
+To prevent two words from becoming separated by a [[linewrap]] (e.g. ''Mr.&amp;nbsp;Smith'' or ''400&amp;nbsp;km/h'') a '''[[non-breaking space]]''', sometimes also called a &quot;non-printing character&quot;, may be used between them. (For three or more words, the template {{tl|nowrap}} is probably more suitable.)
+|
+&lt;syntaxhighlight lang=&quot;html&quot;&gt;Mr.&amp;amp;nbsp;Smith or 400&amp;amp;nbsp;km/h&lt;/syntaxhighlight&gt;
+|
+Mr.&amp;nbsp;Smith or 400&amp;nbsp;km/h
+
+&lt;!------------------- {{pad}} -------------------&gt;
+|-
+|
+'''Extra spacing''' within text is usually best achieved using the {{tl|pad}} template.
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Mary {{pad|4.0em}} had a little lamb.&lt;/syntaxhighlight&gt;
+|
+Mary {{pad|4.0em}} had a little lamb.
+
+&lt;!---------- (&lt;kbd&gt;)
+|-
+|
+'''Typewriter text'''&lt;br&gt;&lt;br&gt;
+
+(Also works beyond the end of a paragraph.)
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;kbd&gt;right arrow    →&lt;/kbd&gt;
+
+&lt;kbd&gt;''italics'', '''bold'''&lt;/kbd&gt;
+
+&lt;kbd&gt;[[wikilink]]
+
+New paragraph &lt;/kbd&gt;started here.&lt;/syntaxhighlight&gt;
+|
+&lt;pre&gt;&lt;kbd&gt;right arrow    →&lt;/kbd&gt;
+
+&lt;kbd&gt;''italics'', '''bold'''&lt;/kbd&gt;
+
+&lt;kbd&gt;[[wikilink]]
+
+New paragraph &lt;/kbd&gt;started here.&lt;/pre&gt;
+
+ -----&gt;
+|}
+
+===Special characters===
+{{See also|Help:Special characters|List of XML and HTML character entity references}}
+Special characters can often be displayed using [[Numeric character reference|numeric character references]] or [[List of XML and HTML character entity references|character entity references]]. See [[Character encodings in HTML]] for more information. For example, &lt;code&gt;&amp;amp;Agrave;&lt;/code&gt; and &lt;code&gt;&amp;amp;#xC0;&lt;/code&gt; both render [[&amp;Agrave;]] (A-[[Grave accent|grave]]). [[Percent-encoding]] can't be used, as it works only in [[URL]]s.
+
+====Diacritical marks====
+[[Diacritic]] marks, using character entity references.
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;pre&gt;&lt;nowiki&gt;&amp;amp;Agrave; &amp;amp;Aacute; &amp;amp;Acirc; &amp;amp;Atilde; &amp;amp;Auml; &amp;amp;Aring; &amp;amp;AElig;
+
+&amp;amp;Ccedil; &amp;amp;Egrave; &amp;amp;Eacute; &amp;amp;Ecirc; &amp;amp;Euml;
+
+&amp;amp;Igrave; &amp;amp;Iacute; &amp;amp;Icirc; &amp;amp;Iuml; &amp;amp;Ntilde;
+
+&amp;amp;Ograve; &amp;amp;Oacute; &amp;amp;Ocirc; &amp;amp;Otilde; &amp;amp;Ouml; &amp;amp;Oslash; &amp;amp;OElig;
+
+&amp;amp;Ugrave; &amp;amp;Uacute; &amp;amp;Ucirc; &amp;amp;Uuml; &amp;amp;Yuml; &amp;amp;szlig;
+
+&amp;amp;agrave; &amp;amp;aacute; &amp;amp;acirc; &amp;amp;atilde; &amp;amp;auml; &amp;amp;aring; &amp;amp;aelig; &amp;amp;ccedil;
+
+&amp;amp;egrave; &amp;amp;eacute; &amp;amp;ecirc; &amp;amp;euml;
+
+&amp;amp;igrave; &amp;amp;iacute; &amp;amp;icirc; &amp;amp;iuml; &amp;amp;ntilde;
+
+&amp;amp;ograve; &amp;amp;oacute; &amp;amp;ocirc; &amp;amp;otilde; &amp;amp;ouml; &amp;amp;oslash; &amp;amp;oelig;
+
+&amp;amp;ugrave; &amp;amp;uacute; &amp;amp;ucirc; &amp;amp;uuml; &amp;amp;yuml;&lt;/nowiki&gt;&lt;/pre&gt;
+
+|
+À Á Â Ã Ä Å Æ
+
+Ç È É Ê Ë
+
+Ì Í Î Ï Ñ
+
+Ò Ó Ô Õ Ö Ø Œ
+
+Ù Ú Û Ü Ÿ ß
+
+à á â ã ä å æ ç
+
+è é ê ë
+
+ì í î ï ñ
+
+ò ó ô õ ö ø œ
+
+ù ú û ü ÿ
+|}
+
+====Punctuation special characters====
+Using character entity references.
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|&lt;code&gt;&amp;amp;iquest; &amp;amp;iexcl; &amp;amp;sect; &amp;amp;para;&lt;/code&gt;
+|¿ ¡ § ¶
+|-
+|&lt;code&gt;&amp;amp;dagger; &amp;amp;Dagger; &amp;amp;bull; &amp;amp;ndash; &amp;amp;mdash;&lt;/code&gt;
+|† ‡ • &amp;ndash; &amp;mdash;
+|-
+|&lt;code&gt;&amp;amp;lsaquo; &amp;amp;rsaquo; &amp;amp;laquo; &amp;amp;raquo;&lt;/code&gt;
+|‹ › « »
+|-
+|&lt;code&gt;&amp;amp;lsquo; &amp;amp;rsquo; &amp;amp;ldquo; &amp;amp;rdquo;&lt;/code&gt;
+|&amp;lsquo; &amp;rsquo; &amp;ldquo; &amp;rdquo;
+|-
+|&lt;code&gt;&amp;amp;apos; &amp;amp;quot;&lt;/code&gt;
+|&amp;apos; &amp;quot;
+|}
+
+====Escaping punctuation characters====
+The [[#Pre|{{tag|pre|o}}]], [[#Nowiki|{{tag|nowiki|o}}]], and  [[#Code|{{tag|code|o}}]]  markup tags are also available, for writing &lt;nowiki&gt;&quot;[&quot;, &quot;{&quot;, &quot;&amp;&quot;, &quot;}&quot;, &quot;]&quot;&lt;/nowiki&gt; for example. These tags prevent these characters from being recognised as wiki markup, which is a possibility in some circumstances.
+
+====Commercial symbols====
+Using character entity references.
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|&lt;code&gt;&amp;amp;trade; &amp;amp;copy; &amp;amp;reg; &lt;/code&gt;
+|™ © ®
+|-
+|&lt;code&gt;&amp;amp;cent; &amp;amp;euro; &amp;amp;yen; &amp;amp;pound; &amp;amp;curren;&lt;/code&gt;
+|¢ € ¥ £ ¤
+|}
+
+====Greek characters====
+Using character entity references.
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|&lt;code&gt;&amp;amp;alpha; &amp;amp;beta; &amp;amp;gamma; &amp;amp;delta; &amp;amp;epsilon; &amp;amp;zeta; &lt;/code&gt;
+|α β γ δ ε ζ
+|-
+|&lt;code&gt;&amp;amp;Alpha; &amp;amp;Beta; &amp;amp;Gamma; &amp;amp;Delta; &amp;amp;Epsilon; &amp;amp;Zeta;&lt;/code&gt;
+|Α Β Γ Δ Ε Ζ
+|-
+|&lt;code&gt;&amp;amp;eta; &amp;amp;theta; &amp;amp;iota; &amp;amp;kappa; &amp;amp;lambda; &amp;amp;mu; &amp;amp;nu;&lt;/code&gt;
+|η θ ι κ λ μ ν
+|-
+|&lt;code&gt;&amp;amp;Eta; &amp;amp;Theta; &amp;amp;Iota; &amp;amp;Kappa; &amp;amp;Lambda; &amp;amp;Mu; &amp;amp;Nu; &lt;/code&gt;
+|Η Θ Ι Κ Λ Μ Ν
+|-
+|&lt;code&gt;&amp;amp;xi; &amp;amp;omicron; &amp;amp;pi; &amp;amp;rho; &amp;amp;sigma; &amp;amp;sigmaf;&lt;/code&gt;
+|ξ ο π ρ σ ς
+|-
+|&lt;code&gt;&amp;amp;Xi; &amp;amp;Omicron; &amp;amp;Pi; &amp;amp;Rho; &amp;amp;Sigma; &lt;/code&gt;
+|Ξ Ο Π Ρ Σ
+|-
+|&lt;code&gt;&amp;amp;tau; &amp;amp;upsilon; &amp;amp;phi; &amp;amp;chi; &amp;amp;psi; &amp;amp;omega;&lt;/code&gt;
+|τ υ φ χ ψ ω
+|-
+|&lt;code&gt;&amp;amp;Tau; &amp;amp;Upsilon; &amp;amp;Phi; &amp;amp;Chi; &amp;amp;Psi; &amp;amp;Omega; &lt;/code&gt;
+|Τ Υ Φ Χ Ψ Ω
+|}
+
+====Egyptian hieroglyphs====
+{{main|Help:WikiHiero syntax}}
+
+WikiHiero is a software extension that renders [[Egyptian hieroglyphs]] as PNG images using {{xtag|hiero}} HTML-like tags.
+
+Example:
+{{markup
+|&lt;nowiki&gt;&lt;hiero&gt;P2&lt;/hiero&gt;&lt;/nowiki&gt;
+|&lt;hiero&gt;P2&lt;/hiero&gt;
+}}
+
+====Chess symbols====
+{{main|Chess symbols in Unicode}}
+
+For example, &amp;amp;#9812; displays &amp;#9812;
+
+====Subscripts and superscripts====
+* The [[Wikipedia:Manual of Style (mathematics)#Superscripts and subscripts|Manual of Style]] prefers the {{tag|sub|o}} and {{tag|sup|o}} formats, for example &lt;code&gt;x{{tag|sub|content=1}}&lt;/code&gt;. So this should be used under most circumstances.
+* The latter methods of sub/superscripting cannot be used in the most general context, as they rely on [[Unicode]] support that may not be present on all users' machines.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+''Subscripts''
+|
+&lt;syntaxhighlight lang=&quot;html&quot;&gt;
+x&lt;sub&gt;1&lt;/sub&gt; x&lt;sub&gt;2&lt;/sub&gt; x&lt;sub&gt;3&lt;/sub&gt; or
+
+x&amp;#8320; x&amp;#8321; x&amp;#8322; x&amp;#8323; x&amp;#8324;
+
+x&amp;#8325; x&amp;#8326; x&amp;#8327; x&amp;#8328; x&amp;#8329;
+&lt;/syntaxhighlight&gt;
+|
+
+x&lt;sub&gt;1&lt;/sub&gt; x&lt;sub&gt;2&lt;/sub&gt; x&lt;sub&gt;3&lt;/sub&gt; or
+
+x₀ x₁ x₂ x₃ x₄
+
+x₅ x₆ x₇ x₈ x₉
+
+|-
+|
+''Superscripts''
+|
+&lt;syntaxhighlight lang=&quot;html&quot;&gt;
+x&lt;sup&gt;1&lt;/sup&gt; x&lt;sup&gt;2&lt;/sup&gt; x&lt;sup&gt;3&lt;/sup&gt; or
+
+x&amp;#8304; x&amp;sup1; x&amp;sup2; x&amp;sup3; x&amp;#8308;
+
+x&amp;#8309; x&amp;#8310; x&amp;#8311; x&amp;#8312; x&amp;#8313;
+&lt;/syntaxhighlight&gt;
+|
+
+x&lt;sup&gt;1&lt;/sup&gt; x&lt;sup &gt;2&lt;/sup &gt; x&lt;sup &gt;3&lt;/sup &gt; or
+
+x⁰ x¹ x² x³ x⁴
+
+x⁵ x⁶ x⁷ x⁸ x⁹
+
+|-
+|
+''Combined''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+&amp;epsilon;&lt;sub&gt;0&lt;/sub&gt; = 8.85 &amp;times; 10&lt;sup&gt;&amp;minus;12&lt;/sup&gt; C&amp;sup2; / J m
+
+1 [[hectare]] = 1 E+4 m&amp;sup2;
+&lt;/syntaxhighlight&gt;
+|
+
+&amp;epsilon;&lt;sub&gt;0&lt;/sub&gt; = 8.85 &amp;times; 10&lt;sup&gt;&amp;minus;12&lt;/sup&gt; C&amp;sup2; / J m
+
+1 [[hectare]] = 1 E+4 m&amp;sup2;
+
+|}
+
+====Characters in the Private Use Area, and invisible formatting characters====
+{{main|MOS:TEXT#PUA and RTL}}
+
+Invisible and [[Private Use Areas|PUA (Private Use Areas)]] characters should be avoided where possible.  When needed, they should both be replaced with their (hexa)decimal code values (as &quot;&amp;#(x)...;&quot;).  This renders invisible characters visible, for manual editing, and allows [[Wikipedia:AutoWikiBrowser|AWB]] to process pages with PUA characters.  The latter should also be tagged with the {{tl|PUA}} template for tracking and future maintenance.
+
+===Mathematical characters and formulae===
+
+====Mathematical characters====
+
+* See also [[Wikipedia:Mathematical symbols]], [[Wikipedia:WikiProject Mathematics|WikiProject Mathematics]] and [[TeX]].
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|&lt;kbd&gt;&amp;amp;int; &amp;amp;sum; &amp;amp;prod; &amp;amp;radic;&lt;/kbd&gt;||&amp;int; &amp;sum; &amp;prod; &amp;radic;
+|-
+|&lt;kbd&gt;&amp;amp;minus; &amp;amp;plusmn; &amp;amp;infin;&lt;/kbd&gt;||&amp;minus; &amp;plusmn; &amp;infin;
+|-
+|&lt;kbd&gt;&amp;amp;asymp; &amp;amp;prop; &amp;amp;equiv; &amp;amp;ne;&lt;/kbd&gt;||&amp;asymp; &amp;prop; &amp;equiv; &amp;ne;
+|-
+|&lt;kbd&gt;&amp;amp;le; &amp;amp;ge;&lt;/kbd&gt;||&amp;le; &amp;ge;
+|-
+|&lt;kbd&gt;&amp;amp;times; &amp;amp;middot; &amp;amp;divide; &amp;amp;part;&lt;/kbd&gt;||&amp;times; &amp;middot; &amp;divide; &amp;part;
+|-
+|&lt;kbd&gt;&amp;amp;prime; &amp;amp;Prime;&lt;/kbd&gt;||&amp;prime; &amp;Prime;
+|-
+|&lt;kbd&gt;&amp;amp;nabla; &amp;amp;permil; &amp;amp;deg; &amp;amp;there4; &amp;amp;alefsym;&lt;/kbd&gt;||&amp;nabla; &amp;permil; &amp;deg; &amp;there4; &amp;alefsym;
+|-
+|&lt;kbd&gt;&amp;amp;oslash;&lt;/kbd&gt;||&amp;oslash;
+|-
+|&lt;kbd&gt;&amp;amp;isin; &amp;amp;notin; &amp;amp;cap; &amp;amp;cup;&lt;/kbd&gt;||&amp;isin; &amp;notin; &amp;cap; &amp;cup;
+|-
+|&lt;kbd&gt;&amp;amp;sub; &amp;amp;sup; &amp;amp;sube; &amp;amp;supe;&lt;/kbd&gt;||&amp;sub; &amp;sup; &amp;sube; &amp;supe;
+|-
+|&lt;kbd&gt;&amp;amp;not; &amp;amp;and; &amp;amp;or; &amp;amp;exist; &amp;amp;forall;&lt;/kbd&gt;||&amp;not; &amp;and; &amp;or; &amp;exist; &amp;forall;
+|-
+|&lt;kbd&gt;&amp;amp;rArr; &amp;amp;lArr; &amp;amp;dArr; &amp;amp;uArr; &amp;amp;hArr;&lt;/kbd&gt;||&amp;rArr; &amp;lArr; &amp;dArr; &amp;uArr; &amp;hArr;
+|-
+|&lt;kbd&gt;&amp;amp;rarr; &amp;amp;larr; &amp;amp;darr; &amp;amp;uarr; &amp;amp;harr;&lt;/kbd&gt;||&amp;rarr; &amp;larr; &amp;darr; &amp;uarr; &amp;harr;
+|}
+
+====Mathematical formulae====
+{{main|Help:Displaying a formula}}
+
+* Formulae that include mathematical letters, like {{math|x}}, and operators like &lt;code&gt;×&lt;/code&gt; should not use the plain letter &lt;code&gt;x&lt;/code&gt;. See [[MOS:MATH#Font_formatting|math font formatting]]. For a comprehensive set of symbols, and comparison between {{tag|math|o}} tags and the {{tl|math}} template see section [[Help:Displaying_a_formula#TeX_vs_HTML|''TeX vs HTML'']].
+
+* The {{tag|math|o}} tag typesets using [[MOS:MATH#Typesetting_of_mathematical_formulae|LaTeX markup]],{{efn|The version of LaTeX used is a subset of AMS-LaTeX markup; see [[Help:Displaying a formula]] for details.}} which may render as an image or as HTML, depending on environmental settings. The {{tag|math|o}} tag is best for the complex formula on its own line in an image format. If you use this tag to put a formula in the line with text, put it in the {{tl|nowrap}} template.
+
+* The {{tl|math}} template [[MOS:MATH#Using_HTML|uses HTML]], and will size-match a serif font, and will also prevent line-wrap. All templates are sensitive to the &lt;code&gt;=&lt;/code&gt; sign, so remember to replace &lt;code&gt;=&lt;/code&gt; with &lt;code&gt;{{tl|{{=}}}}&lt;/code&gt; in template input, or start the input with &lt;code&gt;1=&lt;/code&gt;. Use wiki markup &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;''&lt;/syntaxhighlight&gt; and &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;'''&lt;/syntaxhighlight&gt; inside the {{tl|math}} template, as well as other [[Wikipedia:Mathematical_symbols|HTML entities]]. The {{tl|math}} template is best for typeset formulas in line with the text.
+
+{{markup
+|&lt;syntaxhighlight lang=&quot;tex&quot; inline&gt;
+&lt;math&gt;2x \times 4y \div 6z + 8 - \frac {y}{z^2} = 0&lt;/math&gt;
+&lt;/syntaxhighlight&gt;
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;
+{{math|2''x'' &amp;times; 4''y'' &amp;divide; 6''z'' + 8 &amp;minus; {{sfrac|''y''|''z''&lt;sup&gt;2&lt;/sup&gt;}} {{=}} 0}}
+&lt;/syntaxhighlight&gt;
+
+&lt;syntaxhighlight lang=&quot;tex&quot; inline&gt;
+&lt;math&gt;\sin 2\pi x + \ln e&lt;/math&gt;
+&lt;/syntaxhighlight&gt;
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;
+{{math|sin 2&amp;amp;pi;''x'' + ln ''e''}}
+&lt;/syntaxhighlight&gt;
+|&lt;math&gt;2x \times 4y \div 6z + 8 - \frac {y}{z^2} = 0&lt;/math&gt;
+{{crlf|}}
+
+{{math|2''x'' &amp;times; 4''y'' &amp;divide; 6''z'' + 8 &amp;minus; {{sfrac|''y''|''z''&lt;sup&gt;2&lt;/sup&gt;}} {{=}} 0}}
+
+&lt;math&gt;\sin 2\pi x + \ln e&lt;/math&gt;{{crlf|}}
+{{math|sin 2π''x'' + ln ''e''}}
+}}
+
+====Spacing in simple math formulae====
+
+* Using '''&lt;code&gt;&amp;amp;nbsp;&lt;/code&gt;''' to prevent line break is not needed; the {{tl|math}} template will prevent line breaks anyway; you can use {{tag|br|s}} if you need an explicit line break inside a formula.
+
+{{markup
+|&lt;syntaxhighlight lang=&quot;html&quot; inline&gt;
+It follows that {{math|''x''&lt;sup&gt;2&lt;/sup&gt; &amp;ge; 0}} for real {{mvar|x}}.
+&lt;/syntaxhighlight&gt;
+|2=
+
+It follows that {{math|''x''&lt;sup&gt;2&lt;/sup&gt; &amp;ge; 0}} for real {{mvar|x}}.
+}}
+
+====Complicated formulae====
+
+* See [[Help:Displaying a formula]] for how to use {{tag|math|o}}.
+* A formula displayed on a line by itself should be indented using {{tag|math|params=display=block}}
+
+{{markup
+|&lt;syntaxhighlight lang=&quot;latex&quot; inline&gt;
+&lt;math display=block&gt;\sum_{n=0}^\infty \frac{x^n}{n!}&lt;/math&gt;
+&lt;/syntaxhighlight&gt;
+|2={{crlf2}}
+&lt;math display=block&gt;\sum_{n=0}^\infty \frac{x^n}{n!}&lt;/math&gt;
+}}
+Indenting by using the colon (:) character (i.e. using &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;:&lt;math&gt;&lt;/math&gt;&lt;/syntaxhighlight&gt; instead of &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;&lt;math display=block&gt;&lt;/math&gt;&lt;/syntaxhighlight&gt;) is discouraged for [[Wikipedia:Manual of Style/Accessibility#Indentation|accessibility reasons]].
+
+==Links and URLs==
+{{main|Help:Link}}
+
+===Wikilinks===
+
+'''Wikilinks''' are used in wikitext markup to produce [[internal link]]s between pages. You create wikilinks by putting double square brackets around text designating the title of the page you want to link to. Thus, &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Texas]]&lt;/syntaxhighlight&gt; will be rendered as [[Texas]]. Optionally, you can use a [[vertical bar]] (|) to customize the link title. For example, typing &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Texas|Lone Star State]]&lt;/syntaxhighlight&gt; will produce [[Texas|Lone Star State]], a link that is displayed as &quot;&lt;u&gt;Lone Star State&lt;/u&gt;&quot; but in fact links to [[Texas]].
+
+====Link to another wiki article====
+
+* Internally, the first letter of the target page is automatically capitalized and spaces are represented as underscores (typing an underscore in the link has the same effect as typing a space, but is not recommended).
+* Thus the link hereafter is to the Web address &lt;code&gt;en.wikipedia.org/wiki/Public_transport&lt;/code&gt;, which is the Wikipedia article with the name &quot;Public transport&quot;. See also [[Help:Link#Conversion to canonical form|Canonicalization]].
+* [[Intentionally permanent red link|A red link]] is a page that doesn't exist yet; it can be created by clicking on the link.
+* [[Help:Self link|A link to its own page]] will appear only as bold text.
+
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;London has [[public transport]].&lt;/syntaxhighlight&gt;
+|London has [[public transport]].
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Link to this page: &quot;[[Help:Wikitext]]&quot; will appear only as bold text.&lt;/syntaxhighlight&gt;
+|Link to this page: &quot;[[Help:Wikitext]]&quot; will appear only as bold text.
+}}
+
+====Renamed link====
+
+* Same target, different name.
+* The target (&quot;piped&quot;) text must be placed '''first''', then the text to be displayed '''second'''.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;New York also has [[public transport|public transportation]].&lt;/syntaxhighlight&gt;
+|
+New York also has [[public transport|public transportation]].
+|}
+
+====Automatically rename links====
+
+* Simply typing the pipe character | after a link will automatically rename the link in certain circumstances. The next time you open the edit box you will see the expanded piped link. When [[Help:Show preview|previewing]] your edits, you will not see the expanded form until you press '''Save''' and '''Edit''' again. The same applies to [[#link-to-section|links to sections within the same page]].
+* See [[Help:Pipe trick|Pipe trick]] for details.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+''Automatically hide stuff in parentheses''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[kingdom (biology)|]]&lt;/syntaxhighlight&gt;
+|
+[[kingdom (biology)|kingdom]]
+|-
+| ''Automatically hide the comma and following text''
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Seattle, Washington|]]&lt;/syntaxhighlight&gt;
+| [[Seattle, Washington|Seattle]]
+|-
+|
+''Automatically hide namespace''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wikipedia:Village pump|]]&lt;/syntaxhighlight&gt;
+|
+[[Wikipedia:Village pump|Village pump]]
+|-
+|
+''Or both''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wikipedia:Manual of Style (headings)|]]&lt;/syntaxhighlight&gt;
+|
+[[Wikipedia:Manual of Style (headings)|Manual of Style]]
+|-
+|
+''&lt;b&gt;But this doesn't work for section links&lt;/b&gt;''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wikipedia:Manual of Style#Links|]]&lt;/syntaxhighlight&gt;
+|
+[[Wikipedia:Manual of Style#Links|]]
+|}
+
+====Blend link====
+
+* Endings are blended into the link.
+** ''Exception'': a trailing [[apostrophe]] (') and any characters following the apostrophe are ''not'' blended.
+* Preferred style is to use this instead of a piped link, if possible.
+* Blending can be suppressed by using the [[#Nowiki|{{tag|nowiki|s}}]] tag, which may be desirable in some instances.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+| rowspan=2 | ''Blending active''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;San Francisco also has [[public transport]]ation. Examples include [[bus]]es, [[taxicab]]s, and [[tram]]s.&lt;/syntaxhighlight&gt;
+| San Francisco also has [[public transport]]ation. Examples include [[bus]]es, [[taxicab]]s, and [[tram]]s.
+|-
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;A [[micro-]]second&lt;/syntaxhighlight&gt;
+| A [[micro-]]second
+|-
+|
+''Blending suppressed''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;A [[micro-]]&lt;nowiki /&gt;second.&lt;/syntaxhighlight&gt;
+|
+A [[micro-]]&lt;nowiki /&gt;second
+|}
+
+====Link to a section of a page====
+
+* The part after the hash sign (#) must match a [[Help:Section#Creation_and_numbering_of_sections|section heading]] on the page. Matches must be exact in terms of spelling, case, and punctuation. Links to non-existent sections are not broken; they are treated as links to the beginning of the page.
+* Include &quot;| link title&quot; to create a stylish ([[WP:Piping|piped]]) link title.
+* If sections have the same title, add a number to link to any but the first. [[#Example section 3]] goes to the third section named &quot;Example section&quot;. You can use the pipe and retype the section title to display the text without the # symbol.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wikipedia:Manual of Style#Italics]] is a link to a section within another page.&lt;/syntaxhighlight&gt;
+|
+[[Wikipedia:Manual of Style#Italics]] is a link to a section within another page.
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[#Links and URLs]] is a link to another section on the current page. [[#Links and URLs|Links and URLs]] is a link to the same section without showing the # symbol.&lt;/syntaxhighlight&gt;
+|
+[[#Links and URLs]] is a link to another section on the current page. [[#Links and URLs|Links and URLs]] is a link to the same section without showing the # symbol.
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wikipedia:Manual of Style#Italics|Italics]] is a piped link to a section within another page.&lt;/syntaxhighlight&gt;
+|
+[[Wikipedia:Manual of Style#Italics|Italics]] is a piped link to a section within another page.
+|}
+
+====Create a page link====
+
+* To create a new page:
+*# Create a link to it on some other (related) page.
+*# Save that page.
+*# Click on the link you just made. The new page will open for editing.
+* For more information, see [[Wikipedia:Starting an article|starting an article]] and check out Wikipedia's [[Wikipedia:Naming conventions|naming conventions]].
+* Please do not create a new article without linking to it from at least one other article.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+''Links to pages that don't exist yet look red.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;The article about [[cardboard sandwiches]] doesn't exist yet.&lt;/syntaxhighlight&gt;
+|
+The article about [[cardboard sandwiches]] doesn't exist yet.
+|}
+
+===Redirects===
+{{main|Help:Redirect}}
+
+* [[Wikipedia:Redirect|Redirect]] one article title to another by placing a directive like the one shown to the right on the ''first'' line of the article (such as at a page titled &quot;[[US]]&quot;).
+* It is possible to redirect to a section. For example, a redirect to [[United States#History]] will redirect to the History section of the [[United States]] page, if it exists.
+
+{| class=&quot;wikitable&quot; border=1
+! Description
+! What you type
+|-
+|
+''Redirect to an article''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;#REDIRECT [[United States]] &lt;/syntaxhighlight&gt;
+|-
+|
+''Redirect to a section''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;#REDIRECT [[United States#History]]&lt;/syntaxhighlight&gt;
+|}
+
+===Link to another [[Help:namespace|namespace]]===
+
+*The full page name should be included in double square brackets.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;See the [[Wikipedia:Manual of Style]].&lt;/syntaxhighlight&gt;
+|
+See the [[Wikipedia:Manual of Style]].
+|}
+
+===Link to the same article in another language (interlanguage links)===
+{{main|Help:Interlanguage links|Wikipedia:Complete list of language wikis available}}
+{{notice|After the launch of [[Wikipedia:Wikidata|Wikidata]], interlanguage links are now added through it. Links in articles should exist only in special cases, for example when an article in one language has two articles in another language.}}
+
+* To link to a corresponding page in another language, use the form: &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[language code:Foreign title]]&lt;/syntaxhighlight&gt;.
+* It is recommended interlanguage links be placed at the very end of the article.
+* Interlanguage links are '''NOT visible''' within the formatted article, but instead appear as language links on the sidebar (to the left) under the menu section &quot;languages&quot;.
+
+* '''NOTE:''' To create an '''''inline link''''' (a clickable link within the text) to ''any'' foreign language article, see [[Help:Interlanguage links#Inline interlanguage links]] and consider the usage notes.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+|-
+|
+''Link from English article &quot;Plankton&quot; to the Spanish article [[:es:Plancton|&quot;Plancton&quot;]].''
+
+''&quot;es&quot; is the language code for &quot;{{lang|es|español}}&quot; (the [[Spanish language]]).''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+[[es:Plancton]]
+&lt;/syntaxhighlight&gt;
+
+|-
+|
+''Other examples: French (&lt;code&gt;fr&lt;/code&gt; for {{lang|fr|français}}), German (&lt;code&gt;de&lt;/code&gt; for {{lang|de|Deutsch}}), Russian (&lt;code&gt;ru&lt;/code&gt;), and simple English (&lt;code&gt;simple&lt;/code&gt;).''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+[[fr:Plancton]]
+[[de:Plankton]]
+[[ru:Планктон]]
+[[simple:Plankton]]
+&lt;/syntaxhighlight&gt;
+
+|}
+
+===Interwiki link===
+
+* [[Help:Interwiki links|Interwiki links]] link to any page on other wikis. [[Help:Interwikimedia links|Interwikimedia links]] link to other Wikimedia wikis.
+* Note that interwikimedia links use the internal link style, with double square brackets.
+* See [[MetaWikiPedia:Interwiki_map|Meta-Wiki:Interwiki map]] for the list of shortcuts; if the site you want to link to is not on the list, use an [[#External links|external link]].
+* See also [[Wikipedia:Wikimedia sister projects]].
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+| colspan=&quot;3&quot;|
+Linking to a page on another wiki in English.
+
+All of these forms lead to the URL &lt;em&gt;https://en.wiktionary.org/wiki/hello&lt;/em&gt;.
+|-
+|
+''Simple link.''
+
+''Without prefix.''
+
+''Named link.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wiktionary:hello]]&lt;/syntaxhighlight&gt;
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wiktionary:hello|]]&lt;/syntaxhighlight&gt;
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wiktionary:hello|Wiktionary definition of &quot;hello&quot;]] &lt;/syntaxhighlight&gt;
+|
+[[Wiktionary:hello]]
+
+[[Wiktionary:hello|hello]]
+
+[[Wiktionary:hello|Wiktionary definition of &quot;hello&quot;]]
+|-
+| colspan=&quot;3&quot;|
+Linking to a page on another wiki in another language.
+
+All of these forms lead to the URL &lt;em&gt;https://fr.wiktionary.org/wiki/bonjour&lt;/em&gt;.
+|-
+|
+''Simple link.''
+
+''Without prefix.''
+
+''Named link.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wiktionary:fr:bonjour]]&lt;/syntaxhighlight&gt;
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wiktionary:fr:bonjour|]]&lt;/syntaxhighlight&gt;
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Wiktionary:fr:bonjour|bonjour]]&lt;/syntaxhighlight&gt;
+|
+[[Wiktionary:fr:bonjour]]
+
+[[Wiktionary:fr:bonjour|fr:bonjour]]
+
+[[Wiktionary:fr:bonjour|bonjour]]
+|}
+
+===Categories===
+
+* To put an article in a [[Wikipedia:Categorization|category]], place a link like &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Category:Example]]&lt;/syntaxhighlight&gt; into the article. As with interlanguage links, placing these links at [[WP:FOOTERS|the end of the article]] is recommended.
+* To link to a category page without putting the article into the category, use a colon prefix (&quot;:Category&quot;) in the link.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+''Categorize an article.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Category:Character sets]]&lt;/syntaxhighlight&gt;
+|
+|-
+|
+''Link to a category.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[:Category:Character sets]]&lt;/syntaxhighlight&gt;
+|
+[[:Category:Character sets]]
+|-
+|
+''Without prefix.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[:Category:Character sets|]]&lt;/syntaxhighlight&gt;
+|
+[[:Category:Character sets|Character sets]]
+|}
+
+===External links===
+&lt;!-- linked from [[Wikipedia:External links]] --&gt;
+
+*Single-square brackets indicate an external link. Note the use of a ''space'' (not a pipe |) to separate the URL from the link text in a named link. Square brackets may be used as normal punctuation when not linking to anything – [like this].
+*A [[Uniform Resource Locator|URL]] must begin with a supported [[URI scheme]]: &lt;code&gt;https://&lt;/code&gt; (preferably) and &lt;code&gt;http://&lt;/code&gt; will be supported by all browsers; &lt;code&gt;irc://&lt;/code&gt;, &lt;code&gt;ircs://&lt;/code&gt;, &lt;code&gt;ftp://&lt;/code&gt;, &lt;syntaxhighlight lang=&quot;text&quot; inline&gt;news://&lt;/syntaxhighlight&gt;, &lt;code&gt;mailto:&lt;/code&gt;, and &lt;code&gt;gopher://&lt;/code&gt; will require a plugin or an external application. IPv6 addresses in URLs are currently not supported.
+*A URL containing certain characters will display and link incorrectly unless those characters are [[Percent-encoding|percent encoded]]. For example, a space must be replaced by &lt;code&gt;%20&lt;/code&gt;. Encoding can be achieved by:
+:*Use the link button [[File:OOjs UI icon link-ltr.svg]] on the enhanced editing toolbar to encode the link; this tool will add the bracket markup and the linked text, which may not always be desirable.
+:*Or manually encode the URL by replacing these characters:
+
+{| class=&quot;wikitable&quot; style=&quot;margin-left: 5em&quot;
+! ''space'' !! &quot; !! ' !! , !! ; !! &lt; !! &gt; !! ? !! [ !! ]
+|-
+| %20 || %22 || %27 || %2c || %3b || %3c || %3e || %3f || %5b || %5d
+|}
+:*Or use the &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;{{urlencode:}}&lt;/syntaxhighlight&gt; magic word. See [[:mw:Help:Magic words#URL data|Help:Magic words]] in the MediaWiki documentation for more details.
+
+* See [[Wikipedia:External links]] for style issues, and [[:Category:External link file type templates]] for indicating the file type of an external link with an icon.
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+''Named link'' with an [[Help:external link icons|external link icon]]
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[https://www.wikipedia.org Wikipedia]&lt;/syntaxhighlight&gt;
+|
+[https://www.wikipedia.org Wikipedia]
+|-
+|
+''Unnamed link''
+
+''(Used only within article body for footnotes)''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[https://www.wikipedia.org]&lt;/syntaxhighlight&gt;
+|
+[https://www.wikipedia.org]
+|-
+|
+''Bare URL''
+
+''(Bad style)''
+
+use &lt;nowiki&gt;&lt;nowiki&gt;&lt;/nowiki&gt;&lt;/nowiki&gt; to keep this bad style from showing
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;https://www.wikipedia.org&lt;/syntaxhighlight&gt;
+|
+https://www.wikipedia.org
+|-
+|
+''Link without arrow''
+
+''(Not often used)''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;&lt;span class=&quot;plainlinks&quot;&gt;[https://www.wikipedia.org Wikipedia]&lt;/span&gt;&lt;/syntaxhighlight&gt;
+|
+&lt;span class=&quot;plainlinks&quot;&gt; [https://www.wikipedia.org Wikipedia]&lt;/span&gt;
+|}
+
+===Miscellaneous===
+
+====Media link====
+
+* To include links to non-image uploads such as sounds, use a &quot;media&quot; link. For images, [[#Images|see next section]].
+* Some uploaded sounds are listed at [[Commons:Sound]].
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[media:Classical guitar scale.ogg|Sound]]&lt;/syntaxhighlight&gt;
+|
+[[Media:Classical guitar scale.ogg|Sound]]
+|}
+
+====Links directly into edit mode====
+*These create links that directly go to the edit or view source tab. For example, to create links to the edit tab for this page, either of the following works:
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+Using the {{tl|fullurl}} template
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[{{fullurl:Help:Wiki markup|action=edit}} edit]&lt;/syntaxhighlight&gt;
+|
+[{{fullurl:Help:Wiki markup|action=edit}} edit]
+|-
+|
+Using the {{tl|Edit}} template
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;{{edit}}&lt;/syntaxhighlight&gt;
+|
+{{edit}}
+|}
+
+====Links partially italicized====
+
+*Linking to a page with a title containing words that are usually italicized, such as the [[Hindenburg disaster|''Hindenburg'' disaster]] article.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Hindenburg disaster|''Hindenburg'' disaster]]&lt;/syntaxhighlight&gt;
+|
+[[Hindenburg disaster|''Hindenburg'' disaster]]
+|}
+
+==Musical notation==
+{{main|Help:Score}}
+Musical notation is added by using the {{xtag|score|p}} [[mw:Manual:Tag_extensions|extension]] HTML-like tag. For example:
+:
+{{markup
+|&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;score&gt;\relative c' { fis d fis a d f e d c cis d e a g f ees }&lt;/score&gt;&lt;/syntaxhighlight&gt;
+|&lt;score&gt;\relative c' { fis d fis a d f e d c cis d e a g f ees }&lt;/score&gt;
+}}
+
+==Images==
+{{Main page|Help:Visual file markup|Wikipedia:Images}}
+Only images that have been uploaded to Wikipedia or [[commons:Main Page|Wikimedia Commons]] can be used. To upload images, use the [[:commons:Special:UploadWizard|Commons upload wizard]] for photos you have taken, and the [[Special:Upload|Wikipedia upload page]] if there may be copyright issues. You can find the uploaded image on the [[Special:Imagelist|image list]].
+
+See the Wikipedia's [[Wikipedia:Image use policy|image use policy]] for the policy used on Wikipedia.
+
+For further help on images, including some more versatile abilities, see the [[WP:PIC|picture tutorial]] and [[Wikipedia:Extended image syntax|extended image syntax]].
+
+{| class=&quot;wikitable&quot;
+|-
+! What you type
+! What it looks like
+! Notes
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; style=&quot;white-space: pre-wrap;&quot;&gt;The image name, the word thumb then the caption :
+[[File:wiki.png|thumb|Wikipedia logo]]&lt;/syntaxhighlight&gt;
+
+| The image name, the word thumb then the caption :
+[[File:wiki.png|thumb|alt=Puzzle globe|Wikipedia logo]] {{clear}}
+
+|
+* The thumb tag automatically allows the image to be enlarged and positions it (floats) automatically to the right of the page.
+* An enlarge icon is placed in the lower right corner.
+* See note below about adding an [[#alt tag|alt tag]]
+* This is the basic markup for most images
+
+
+|- style=&quot;vertical-align: top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;A picture: [[File:wiki.png]]&lt;/syntaxhighlight&gt;
+
+| A picture: [[File:wiki.png]]
+
+|
+* The picture name alone places the image in the text, or on the next line if there is insufficient space.
+* Embedding the image in the text is only possible for very small images.
+* Embedding the image will affect the vertical formatting of text.
+|- style=&quot;vertical-align: top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;With alternative text:
+[[File:wiki.png|alt=Puzzle globe logo]]&lt;/syntaxhighlight&gt;
+
+| With alternative text:
+[[File:wiki.png|alt=Puzzle globe logo]]
+
+|
+* {{anchor|alt tag}}Alternative text, used when the image is unavailable or when the image is loaded in a text-only browser, or when spoken aloud, is '''strongly''' encouraged. See [[Wikipedia:Alternative text for images|Alternative text for images]] for help on choosing it.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;With link:
+[[File:wiki.png|link=Wikipedia]]&lt;/syntaxhighlight&gt;
+
+| With link:
+[[File:wiki.png|link=Wikipedia]] {{clear}}
+|
+* The link directs to the Wikipedia page, [[Wikipedia]], instead of the image file page.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; style=&quot;white-space: pre-wrap;&quot;&gt;Forced to the centre of the page
+using the ''frame'' tag (attribute), a ''centre'' tag and a caption:
+[[File:wiki.png|frame|centre|alt=Puzzle globe|Wikipedia logo]]&lt;/syntaxhighlight&gt;
+
+| Forced to the centre of the page using the ''frame'' tag (attribute), a ''centre'' tag and a caption:
+[[File:wiki.png|frame|centre|alt=Puzzle globe|Wikipedia logo]] {{clear}}
+
+|
+* The frame tag automatically floats the image right.
+* The frame tag is only of use with very small images or ones using the [[#px tag|px tag]]
+* The attributes left, center or centre override this, and places the image to the left or the centre of the page. {{anchor|upright tag}}
+* The last parameter is the caption that appears below the image.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; style=&quot;white-space: pre-wrap;&quot;&gt;Forced to the left side of the page
+using the ''thumb'' attribute, the ''left'' attribute  and a caption:
+[[File:wiki.png|thumb|left|alt=Puzzle globe|Wikipedia logo]]&lt;/syntaxhighlight&gt;
+
+| Forced to the left side of the page using the ''thumb'' attribute, the ''left'' attribute  and a caption:
+[[File:wiki.png|thumb|left|alt=Puzzle globe|Wikipedia logo]] {{clear}}
+
+|
+* The thumb tag automatically floats the image right.
+* An enlarge icon is placed in the lower right corner.
+* The attributes left, center or centre override this, and places the image to the left or the centre of the page.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; style=&quot;white-space: pre-wrap;&quot;&gt;Forced to the right side of the page
+''without'' a caption:
+[[File:wiki.png|right|Wikipedia encyclopedia]]&lt;/syntaxhighlight&gt;
+
+| Forced to the right side of the page ''without'' a caption:
+[[File:wiki.png|right|Wikipedia encyclopedia]]
+|
+* Captions are only displayed when the thumb or frame attributes are present
+* The [[WP:PIC|picture tutorial]] explains more options.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;A picture resized to 50 pixels...
+[[File:wiki.png|50 px|Wikipedia encyclopedia]]&lt;/syntaxhighlight&gt;
+
+| A picture resized to 50 pixels width...
+[[File:wiki.png|50 px|Wikipedia encyclopedia]]
+
+|
+* {{anchor|px tag}}The [[WP:PIC|picture tutorial]] explains more options.
+* Sizing in pixels is deprecated and should be used very sparingly.
+* There is an [[#upright tag|''upright'' attribute]] that should be used instead. These tags are optimised for both laptop and mobile phone screens.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Linking directly to the description page of an image:
+[[:File:wiki.png]]&lt;/syntaxhighlight&gt;
+
+| Linking directly to the description page of an image:
+[[:File:wiki.png]]
+
+|
+* Clicking on an image displayed normally on a page also leads to the description page.
+
+|- style=&quot;vertical-align:top;&quot;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Linking directly to an image without displaying it:
+&lt;nowiki&gt;[[Media:wiki.png|Image of jigsaw globe]]&lt;/syntaxhighlight&gt;
+
+| Linking directly to an image without displaying it:
+[[Media:Wiki.png|Image of jigsaw globe]]
+
+|
+* To include links to images shown as links instead of drawn on the page, use a &quot;media&quot; link.
+
+|- style=&quot;vertical-align:top;&quot;
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Example:
+&lt;div style=&quot;display: inline; width: 220px; float: right;&quot;&gt;
+[[File:wiki.png|50 px|Wikipedia encyclopedia]][[File:wiki.png|50 px]] &lt;/div&gt;&lt;/syntaxhighlight&gt;
+
+|
+Example:
+&lt;div style=&quot;display: inline; width: 220px; float: right;&quot;&gt;
+[[File:wiki.png|50 px|Wikipedia encyclopedia]][[File:wiki.png|50 px]] &lt;/div&gt;
+
+|
+* Using the [[span and div|&lt;code&gt;span&lt;/code&gt; or &lt;code&gt;div&lt;/code&gt; elements]] to separate images from text (note that this may allow images to cover text).
+
+|- style=&quot;vertical-align:top;&quot;
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;Example:
+
+{| style=&quot;text-align: right;&quot;
+|-
+|
+[[File:wiki.png|50 px]]
+|-
+|
+[[File:wiki.png|50 px]]
+|-
+|
+[[File:wiki.png|50 px]]
+|}&lt;/syntaxhighlight&gt;
+
+|
+Example:
+
+{| style=&quot;text-align: right;&quot;
+|-
+|
+[[File:wiki.png|50 px]]
+|-
+|
+[[File:wiki.png|50 px]]
+|-
+|
+[[File:wiki.png|50 px]]
+|}
+
+|
+*Using wiki markup to make a table in which to place a vertical column of images (this helps edit links match headers, especially in Firefox browsers).
+|}
+
+==Tables==
+{{main|Help:Table}}
+{{See also|Wikipedia:Manual of Style/Tables#Appropriate}}
+There are two ways to build tables:
+* Using specific wiki markup: (see [[Help:Table]]).
+* Using HTML elements: {{tag|table|o}}, {{tag|tr|o}}, {{tag|td|o}} or {{tag|th|o}}.
+
+==Columns==
+{{main|Help:Columns}}
+Use {{tl|colbegin}} and {{tl|colend}} templates to produce columns.
+
+==References and citing sources==
+{{main|Wikipedia:Citing sources|Help:Footnotes}}
+{{see also|APA style|The Chicago Manual of Style{{!}}Chicago style|Harvard style|MLA style}}
+
+Making a reference citing a printed or online source can be accomplished by using the {{xtag|ref}} wiki markup tags. Inside these tags details about the reference are added.
+
+Details about the citation can be provided using a structure provided by various templates; the table below lists some typical citation components.
+
+{| class=&quot;wikitable&quot;
+|-
+! What it's for !! What you type
+|-
+| {{Nowrap|To create the reference}} || {{xtag|ref|params=name=&quot;reference name&quot;|content=''add_template_name_here''|p}}
+|-
+| To cite a book || {{Tlx|cite book}}
+|-
+| To cite a web source || {{Tlx|cite web}}
+|-
+| Book ISBN || {{para|isbn|0-4397-0818-4}} (ISBN of the book)
+|-
+| Web URL || {{para|url|ht&lt;nowiki /&gt;tps://www.wikipedia.org}}
+|-
+| Title || {{para|title|title of source}}
+|-
+| Author || {{para|author|authors, use commas for multiple}}
+|-
+| First name || {{para|first|first name}}
+|-
+| Last name || {{para|last|last name}}
+|-
+| Location || {{para|location|location of publisher}}
+|-
+| Publisher || {{para|publisher|who published the source}}
+|-
+| Date || {{para|date|2007-09-21}} (date of source)
+|-
+| Year || {{para|year|year of source}}
+|-
+| Accessed date || {{para|access-date|2008-12-25}} (only if url= is included)
+|-
+| A complete reference tag || {{xtag|ref|o|params=name=&quot;Wiki markup&quot;}}&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;{{cite web |url=https://en.wikipedia.org/wiki/Help:Wiki_markup |title=Help:Wiki markup |publisher=Wikimedia Foundation}}&lt;/syntaxhighlight&gt;{{xtag|ref|c}}
+|-
+| Referencing this again || {{xtag|ref|s|params=name=&quot;Wiki markup&quot;}}
+|-
+| Citation needed || {{tlx|Citation needed|{{tls|DATE}}}}
+|}
+
+==Templates and transcluding pages==
+{{main|Wikipedia:Transclusion}}
+{{see also|Help:Template#Noinclude, includeonly, and onlyinclude}}
+
+Examples for templates: &lt;nowiki&gt;{{pad|...}}, {{math|...}}, {{as of|...}}, {{edit}}&lt;/nowiki&gt;
+
+'''[[Help:Template|Templates]]''' are segments of wiki markup that are meant to be copied automatically (&quot;transcluded&quot;) into a page.
+They are specified by putting the template's name in &lt;nowiki&gt;{{double braces}}&lt;/nowiki&gt;. Most templates are pages in the [[WP:Template namespace|Template namespace]], but it is possible to transclude mainspace pages (articles) by using &lt;nowiki&gt;{{:colon and double braces}}&lt;/nowiki&gt;.
+
+There are three pairs of [[html element|tags]] that can be used in [[wikitext]] to control how transclusion affects parts of a template or article.
+They determine whether or not wikitext renders, either in its own article, which we will call &quot;'''here'''&quot;, or in another article where it is transcluded, which we will call &quot;'''there'''&quot;.
+* '''&lt;nowiki&gt;&lt;noinclude&gt;&lt;/nowiki&gt;: ''' the content '''will not be rendered ''there'''''. These tags have no effect ''here''.
+* '''&lt;nowiki&gt;&lt;includeonly&gt;&lt;/nowiki&gt;: ''' the content  '''will render only ''there''''', and  '''will not render ''here''''' (like [[invisible ink]] made visible by means of transclusion).
+* '''&lt;nowiki&gt;&lt;onlyinclude&gt;&lt;/nowiki&gt;: ''' the content '''will render ''here''''' and '''will render ''there''''', but it will only render ''there'' what is between these tags.
+There can be several such section &quot;[[HTML#Elements|elements]]&quot;. Also, they can be nested. All possible renderings are achievable. For example, to render ''there'' one or more sections of the page ''here'' use '''&lt;nowiki&gt;&lt;onlyinclude&gt;&lt;/nowiki&gt;''' tags. To append text ''there'', wrap the addition in '''&lt;nowiki&gt;&lt;includeonly&gt;&lt;/nowiki&gt;''' tags before, within, or after the section. To omit portions of the section, nest '''&lt;nowiki&gt;&lt;noinclude&gt;&lt;/nowiki&gt;''' tags within it.
+
+If a page is transcluded without transclusion markup, it may cause an unintentional [[Help:Category#Putting_pages_in_categories|categorization]]. Any page transcluding it will contain the same category as the original page. Wrap the category markup with '''&lt;nowiki&gt;&lt;noinclude&gt;&lt;/nowiki&gt;''' tags to prevent incorrect categorization.
+{{anchor|hovertext}}
+Some templates take ''parameters'', as well, which you separate with the pipe character &lt;code&gt;|&lt;/code&gt;.
+
+{| class=&quot;wikitable&quot;
+!width=&quot;500&quot;| What you type
+!width=&quot;1000&quot;| What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;{{Transclusion demo}}&lt;/syntaxhighlight&gt;
+|
+{{Transclusion demo}}
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;{{Help:Transclusion demo}}&lt;/syntaxhighlight&gt;
+|
+{{Help:Transclusion demo}}
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+This template takes two parameters,
+and creates underlined text with a
+hover box for many modern browsers
+supporting CSS:
+
+{{Tooltip|Hover your mouse over this text
+|This is the hover text}}
+
+Go to this page to see the Tooltip
+template itself: {{tl|Tooltip}}
+&lt;/syntaxhighlight&gt;
+|
+
+This template takes two parameters,
+and creates underlined text with a
+hover box for many modern browsers
+supporting CSS:
+
+{{Tooltip|Hover your mouse over this text
+|This is the hover text}}
+
+Go to this page to see the Tooltip
+template itself: {{tl|Tooltip}}
+
+|}
+
+==Talk and project pages==
+These are likely to be helpful on [[Help:Using talk pages|talk]] and [[Wikipedia:Project namespace|project pages]].
+
+===Signing comments===
+
+*The  ''[[tilde]]'' character (~) is used when signing a comment on a talk page. Your username provides a link to your [[Wikipedia:user page|user page]].
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+|
+''You should sign your comments by appending four tildes to the comment, which adds your user name plus date/time.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;~~~~&lt;/syntaxhighlight&gt;
+|
+[[Special:Mypage|Username]] ([[Special:Mytalk|talk]]) {{CURRENTTIME}}, {{CURRENTDAY}} {{CURRENTMONTHNAME}} {{CURRENTYEAR}} (UTC)
+|-
+|
+''Adding three tildes will add just your user name.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;~~~&lt;/syntaxhighlight&gt;
+|
+[[Special:Mypage|Username]] ([[Special:Mytalk|talk]])
+|-
+|
+''Adding five tildes gives the date/time alone.''
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;~~~~~&lt;/syntaxhighlight&gt;
+|
+{{CURRENTTIME}}, {{CURRENTDAY}} {{CURRENTMONTHNAME}} {{CURRENTYEAR}} (UTC)
+|}
+
+===Linking to old revisions of pages, diffs, and specific history pages===
+
+*The external link function is mainly used for these. Open an old revision or diff, and copy the [[URL]] from the address bar, pasting it where you want it.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[https://en.wikipedia.org/w/index.php?title=Help:Wiki_markup&amp;diff=330350877&amp;oldid=330349143 Diff between revisions 330349143 and 330350877]&lt;/syntaxhighlight&gt;
+|
+[https://en.wikipedia.org/w/index.php?title=Help:Wiki_markup&amp;diff=330350877&amp;oldid=330349143 Diff between revisions 330349143 and 330350877]
+|}
+
+*You can also use an [[Help:Diff#Internal links|internal diff link]]. '''Unlike the template {{tl|diff}}, this kind of link can even be used in edit summaries.'''
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:Diff/330349143/330350877|Diff between revisions 330349143 and 330350877]]&lt;/syntaxhighlight&gt;
+|
+[[Special:Diff/330349143/330350877|Diff between revisions 330349143 and 330350877]]
+|}
+
+*If the diff intended to be shown is between an immediately previous revision, the first parameter can be dropped.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:Diff/330350877|Diff between revisions 330349143 and 330350877]]&lt;/syntaxhighlight&gt;
+|
+[[Special:Diff/330350877|Diff between revisions 330349143 and 330350877]]
+|}
+
+*For an old revision, you can also use a [[Help:Permanent link|permalink]]. Though here only the main text is guaranteed to be retained (images and templates will be shown as they are today, not as they were at the time).
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:Permalink/330350877|Revision 330350877]]&lt;/syntaxhighlight&gt;
+|
+[[Special:Permalink/330350877|Revision 330350877]]
+|}
+
+===What links here, and recent changes linked===
+
+*The following markup can be used. For example, for the article [[Beetroot]]:
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:WhatLinksHere/Beetroot]]&lt;/syntaxhighlight&gt;
+|
+[[Special:WhatLinksHere/Beetroot]]
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:RecentChangesLinked/Beetroot]]&lt;/syntaxhighlight&gt;
+|
+[[Special:RecentChangesLinked/Beetroot]]
+|}
+
+===User edits===
+
+*Link to a user's [[Help:User contributions|contributions page]].
+
+{| class=&quot;wikitable&quot;
+! Description
+! What you type
+! What it looks like
+|-
+| ''Username (registered users).''
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:Contributions/UserName]]&lt;/syntaxhighlight&gt;
+| [[Special:Contributions/UserName]]
+|-
+| ''[[IPv4]] address (unregistered users).''
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:Contributions/192.0.2.0]]&lt;/syntaxhighlight&gt;
+| [[Special:Contributions/192.0.2.0]]
+|-
+| ''[[IPv6]] address (unregistered users).''
+| &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;[[Special:Contributions/2001:0db8:0000:0000:0000:ff00:0042:8329]]&lt;/syntaxhighlight&gt;
+| [[Special:Contributions/2001:0db8:0000:0000:0000:ff00:0042:8329]]
+|}
+
+===Coloring and highlighting text===
+
+*Using the {{tl|Color}} and {{tl|Font color}} templates:
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;I will change the color in {{color|blue|the middle part of}} this sentence.&lt;/syntaxhighlight&gt;
+
+|
+
+I will change the color in {{color|blue|the middle part of}} this sentence.
+
+|-
+|
+
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is how to {{Font color||yellow|highlight part of a sentence}}.&lt;/syntaxhighlight&gt;
+
+|
+
+This is how to {{Font color||yellow|highlight part of a sentence}}.
+|}
+
+
+
+===Example text===
+The {{tlx|xt}} family of templates can be used to highlight e'''x'''ample tex'''t'''.  These templates do not work in mainspace—that is, in regular articles—they are intended for use on project pages (such as [[Wikipedia:Manual of Style]]), help pages, and user pages.
+{| class=wikitable
+!What you type
+!What you get
+|-
+|&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is {{xt|a correct example}} for comparison {{tick}}&lt;/syntaxhighlight&gt;
+|This is {{xt|a correct example}} for comparison {{tick}}
+|-
+|&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is {{!xt|an incorrect example}} for contrast {{cross}}&lt;/syntaxhighlight&gt;
+|This is {{!xt|an incorrect example}} for contrast {{cross}}
+|-
+|&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is {{mxt|in monospace}} for comparison&lt;/syntaxhighlight&gt;
+|This is {{mxt|in monospace}} for comparison
+|-
+|&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is {{!mxt|in monospace}} for contrast&lt;/syntaxhighlight&gt;
+|This is {{!mxt|in monospace}} for contrast
+|-
+|&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is {{bxt|in bold}} for comparison&lt;/syntaxhighlight&gt;
+|This is {{bxt|in bold}} for comparison
+|-
+|&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;This is {{!bxt|in bold}} for contrast&lt;/syntaxhighlight&gt;
+|This is {{!bxt|in bold}} for contrast
+|}
+
+===Show deleted or inserted text===
+{{details|Wikipedia:Talk page guidelines#Editing own comments}}
+* When editing regular Wikipedia articles, just make your changes, and do not mark them up in any special way, except when the article itself discusses deleted or inserted content, such as an amendment to a statute:
+** to indicate deleted content, use {{tag|del}}
+** to indicate inserted content, use {{tag|ins}}
+* This also applies to changing one's own talk page comments.
+
+{| class=&quot;wikitable&quot;
+! What you type
+! What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;You can &lt;del&gt;indicate deleted material&lt;/del&gt; and &lt;ins&gt;inserted material&lt;/ins&gt;.&lt;/syntaxhighlight&gt;
+|
+You can &lt;del&gt;indicate deleted material&lt;/del&gt; and &lt;ins&gt;inserted material&lt;/ins&gt;.
+|}
+
+===&lt;span class=&quot;anchor&quot; id=&quot;Strikethrough&quot;&gt;&lt;/span&gt; Strikethrough ===
+{{see also|Help:HTML in wikitext#s}}
+The {{tl|Strikethrough}} template marks up a span of text with the {{tag|s}} tag. This is usually renderend visually by drawing a horizontal line through it. Outside of articles, it can be used to mark something as no longer accurate or relevant without removing it from view. Do not use it, however, to indicate document edits. For that, use the {{tag|del}} tag instead. See {{slink||Show deleted or inserted text}} for details.
+{| class=wikitable
+!What you type
+!What you get
+|-
+|&lt;kbd&gt;&lt;nowiki&gt;This is {{&lt;/nowiki&gt;'''Strikethrough'''&lt;nowiki&gt;|an obsolete stretch of text}} for comparison&lt;/nowiki&gt;&lt;/kbd&gt;
+|This is {{Strikethrough|an obsolete stretch of text}} for comparison
+|}
+
+=={{anchor|Limiting formatting}} Limiting formatting / escaping wiki markup==
+
+A few different kinds of formatting will tell the wiki to display things as you typed them – what you see is what you get!
+
+{| class=&quot;wikitable&quot; style=&quot;margin-right:0em;&quot;
+|-
+!What you type
+!What it looks like
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+'''&amp;lt;nowiki&amp;gt; tag:'''
+
+&lt;nowiki&gt;
+The &lt;nowiki&gt; tag ignores [[wiki]]
+''markup''. It reformats text by
+removing newlines and    multiple
+spaces.       It still interprets
+characters specified by
+&amp;amp;name;: &amp;rarr;
+&lt;/nowiki&gt;
+&lt;/syntaxhighlight&gt;
+|
+'''&amp;lt;nowiki&amp;gt; tag:'''
+
+&lt;nowiki&gt;
+The &lt;nowiki&gt; tag ignores [[wiki]]
+''markup''. It reformats text by
+removing newlines and    multiple
+spaces.       It still interprets
+characters specified by
+&amp;amp;name;: &amp;rarr;
+&lt;/nowiki&gt;
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+'''&amp;lt;pre&amp;gt; tag:'''
+
+&lt;pre&gt;The &amp;lt;pre&amp;gt; tag ignores [[wiki]]
+''markup'' as does the &amp;lt;nowiki&amp;gt;
+tag. Additionally, &amp;lt;pre&amp;gt; displays
+in a mono-spaced font, and does
+not  reformat    text    spaces.
+It still interprets special
+characters: &amp;rarr;&lt;/pre&gt;
+&lt;/syntaxhighlight&gt;
+|
+'''&amp;lt;pre&amp;gt; tag:'''
+
+&lt;pre&gt;The &amp;lt;pre&amp;gt; tag ignores [[wiki]]
+''markup'' as does the &amp;lt;nowiki&amp;gt;
+tag. Additionally, &amp;lt;pre&amp;gt; displays
+in a mono-spaced font, and does
+not  reformat    text    spaces.
+It still interprets special
+characters: &amp;rarr;&lt;/pre&gt;
+|-
+|
+&lt;pre&gt;'''[Text without a URL]:'''
+
+Single square brackets holding
+[text without a HTTP URL] are
+preserved, but single square
+brackets containing a URL are
+treated as being an external
+[https://example.com/ Web link].&lt;/pre&gt;
+|
+'''[Text without a URL]:'''
+
+Single square brackets holding
+[text without a HTTP URL] are
+preserved, but single square
+brackets containing a URL are
+treated as being an external
+[https://example.com/ Web link].
+|-
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;'''Leading space:'''
+
+Leading spaces are another way
+to preserve formatting.
+ Putting a space at the
+ beginning of each line
+ stops the text   from
+ being reformatted.
+ It still interprets [[wiki]]
+ ''markup'' and special characters: &amp;amp;&lt;/syntaxhighlight&gt;
+|
+'''Leading space:'''
+
+Leading spaces are another way
+to preserve formatting.
+ Putting a space at the
+ beginning of each line
+ stops the text   from
+ being reformatted.
+ It still interprets [[wiki]]
+ ''markup'' and special characters: &amp;rarr;
+|}
+
+===Nowiki===
+{{anchor|NOWIKI}}
+{{redirect|WP:NOWIKI|the essay about the name &quot;Wiki&quot;|Wikipedia:Don't abbreviate &quot;Wikipedia&quot; as &quot;Wiki&quot;!}}
+{{shortcut|H:NOWIKI|WP:NOWIKI}}
+
+:{{tag|nowiki}} (wiki markup contained between these two tags is displayed as normal text)
+:{{tag|nowiki|s}} (wiki markup that is interrupted by this tag is displayed as normal text, as detailed in examples below)
+
+These two kinds of nowiki operate in different ways, but both neutralize the rendering of wiki markup as shown in the examples below. For example, the characters that have wiki markup meaning at the beginning of a line ({{code|*}}, {{code|#}}, {{code|;}} and {{code|:}}) can be rendered in normal text. Editors can normalize the font of characters trailing a wikilink, which would otherwise appear in the wikilink font. And newlines added to wikitext for readability can be ignored.
+
+Note to template editors: tag {{tag|nowiki|o}} works only on its source page, not the target.
+
+{{markup
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;# Ordered list&lt;/syntaxhighlight&gt;
+|{{crlf2}}
+# Ordered list
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;nowiki /&gt;# Ordered list&lt;/syntaxhighlight&gt;
+|{{crlf2}}
+&lt;nowiki /&gt;# Ordered list
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;A [[micro-]]second.&lt;/syntaxhighlight&gt;
+|A [[micro-]]second.
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;A [[micro-]]&lt;nowiki /&gt;second.&lt;/syntaxhighlight&gt;
+|A [[micro-]]&lt;nowiki /&gt;second.
+|&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;a&lt;nowiki&gt;
+
+&lt;/nowiki&gt;b&lt;/syntaxhighlight &gt;
+|a&lt;nowiki&gt;
+
+&lt;/nowiki&gt;b
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;'&lt;nowiki /&gt;'Italics' markup'&lt;nowiki /&gt;'&lt;/syntaxhighlight&gt;
+|'&lt;nowiki /&gt;'Italics' markup'&lt;nowiki /&gt;'
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;nowiki&gt;[[Example]]&lt;/nowiki&gt;&lt;/syntaxhighlight&gt;
+| &lt;nowiki&gt;[[Example]]&lt;/nowiki&gt;
+| &lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;nowiki&gt;&lt;!-- revealed --&gt;&lt;/nowiki&gt;&lt;/syntaxhighlight&gt;
+| &lt;nowiki&gt;&lt;!-- revealed --&gt;&lt;/nowiki&gt;
+}}
+
+The rest of the section consists of simple, live examples showing how a single nowiki tag escapes entire linkage structures, beyond {{code|2=wikitext|[[wikilink]]}} and {{tlc|template}}:
+
+:[[ ''[[wp:fullpagename|fullpagename]]'' &lt;nowiki /&gt;| ''label'' ]]
+:{{ ''pagename'' &lt;nowiki /&gt;| ''parameter'' }}
+:[[ ''fullpagename'' | {{ ''pagename'' }&lt;nowiki /&gt;} ]&lt;nowiki /&gt;]
+:{{ ''pagename'' | [[ ''fullpagename'' ]&lt;nowiki /&gt;] }}
+:{{ ''pagename'' &lt;nowiki /&gt;| {{ ''pagename'' }&lt;nowiki /&gt;} }}
+
+Unless you use the two &quot;balanced&quot; nowiki tags, troubleshooting [[help:strip markers|strip marker]] errors and template parameter-handling inconsistencies is a risk. Also, a rendering error may arise when two &lt;kbd&gt;[&lt;nowiki /&gt;[...]]&lt;/kbd&gt; square brackets are on the same line, or two &lt;kbd&gt;{&lt;nowiki /&gt;{...}}&lt;/kbd&gt; curly brackets are in the same section, but only when the two have the nowiki markup placed inconsistently.
+
+====Displaying wikilinks====
+
+(These are all live examples.)
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+[[ wp:pagename | page name ]]
+[&lt;nowiki /&gt;[ wp:pagename | page name ]]
+[[&lt;nowiki /&gt; wp:pagename | page name ]]
+[[ wp:pagename &lt;nowiki /&gt;| page name ]]
+[[ wp:pagename | page name ]&lt;nowiki /&gt;]&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:[[ wp:pagename | page name ]]
+:[&lt;nowiki /&gt;[ wp:pagename | page name ]]
+:[[&lt;nowiki /&gt; wp:pagename | page name ]]
+:[[ wp:pagename &lt;nowiki /&gt;| page name ]]
+:[[ wp:pagename | page name ]&lt;nowiki /&gt;]
+&lt;/poem&gt;
+}}
+For '''nested structures''', escaping an inner structure escapes its outer structure too.
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+[[ wp: {{ 1x | pagename }} ]]
+[[ wp: {&lt;nowiki /&gt;{ 1x | pagename }} ]]
+[[ wp: {{&lt;nowiki /&gt; 1x | pagename }} ]]
+[[ wp: {{ 1x &lt;nowiki /&gt;| pagename }} ]]&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:[[ wp: {{ 1x | pagename }} ]]
+:[[ wp: {&lt;nowiki /&gt;{ 1x | pagename }} ]]
+:[[ wp: {{&lt;nowiki /&gt; 1x | pagename }} ]]
+:[[ wp: {{ 1x &lt;nowiki /&gt;| pagename }} ]]
+&lt;/poem&gt;
+}}
+For '''two, first pipes''', two nowiki tags are required:
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+[[ wp: pagename | {{ 1x | label }} ]]
+[[ wp: pagename &lt;nowiki /&gt;| {{ 1x &lt;nowiki /&gt;| label }} ]]
+&amp;lt;nowiki&gt;[[ wp: pagename | {{ 1x | label }} ]] &amp;lt;/nowiki&gt;&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:[[ wp: pagename | {{ 1x | label }} ]]
+:[[ wp: pagename &lt;nowiki /&gt;| {{ 1x &lt;nowiki /&gt;| label }} ]]
+:&lt;nowiki&gt;[[ wp: pagename | {{ 1x | label }} ]] &lt;/nowiki&gt;
+&lt;/poem&gt;
+}}
+====Displaying template calls====
+{{See also|Template:tl}}
+
+For templates, put nowiki before the first pipe.
+If a parameter has a wikilink, put it in that, an inmost position.
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+{&lt;nowiki /&gt;{ val | u=&amp;amp;gt; [[ms]] | 49082 }}
+{{&lt;nowiki /&gt; val | u=&amp;amp;gt; [[ms]] | 49082 }}
+{{ val &lt;nowiki /&gt;| u=&amp;amp;gt; [[ms]] | 49082 }}
+{{ val | u= &amp;gt; [[ms]] | 49082 }&lt;nowiki /&gt;}
+{{ val | u= &amp;gt; [[ ms ]&lt;nowiki /&gt;] | 49082 }} &lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:{&lt;nowiki /&gt;{ val | u=&amp;gt; [[ms]] | 49082 }}
+:{{ val | u= &amp;gt; [[ms]] | 49082 }&lt;nowiki /&gt;}
+:{{&lt;nowiki /&gt; val | u=&amp;gt; [[ms]] | 49082 }}
+:{{ val &lt;nowiki /&gt;| u=&amp;gt; [[ms]] | 49082 }}
+:{{ val | u= &amp;gt; [[ ms ]&lt;nowiki /&gt;] | 49082 }} {{OK}}
+&lt;/poem&gt;
+}}
+====Displaying magic words====
+{{Further|Help:Magic words|Help:Parser function}}
+
+For input '''parameters''', {{{1}}}, {{{2}}}, just write them out, unless they have a default (which goes behind their pipe):
+{{&amp;lt;nowiki /&gt;{1|default}}} &amp;rarr; {{&lt;nowiki /&gt;{1|default}}}
+
+For a '''parser function''' nowiki goes between bracketing-pair characters, or anywhere before the : colon.
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+{{ #ifeq: inYes | inYes | outYes | outNo }}
+{&lt;nowiki /&gt;{ #ifeq: inYes | inYes | outYes | outNo }}
+{{&lt;nowiki /&gt; #ifeq: inYes | inYes | outYes | outNo }}
+{{ #ifeq&lt;nowiki /&gt;: inYes | inYes | outYes | outNo }}
+{{ #ifeq: inYes | inYes | outYes | outNo }&lt;nowiki /&gt;}&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:{{ #ifeq: inYes | inYes | outYes | outNo }}
+:{&lt;nowiki /&gt;{ #ifeq: inYes | inYes | outYes | outNo }}
+:{{&lt;nowiki /&gt; #ifeq: inYes | inYes | outYes | outNo }}
+:{{ #ifeq&lt;nowiki /&gt;: inYes | inYes | outYes | outNo }}
+:{{ #ifeq: inYes | inYes | outYes | outNo }&lt;nowiki /&gt;}
+&lt;/poem&gt;
+}}
+'''Behavioral switches''' expect the tag anywhere:
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+ 1. __HIDDENCAT__
+ 2. __HIDDENCAT&lt;nowiki /&gt;__&lt;/syntaxhighlight&gt;
+|
+:1. __HIDDENCAT__{{break}}
+:2. __HIDDENCAT&lt;nowiki /&gt;__
+}}
+====Displaying tags====
+
+Tags do not display; they are just markup. If you want them to, insert {{tag|nowiki|s}} after an {{code|&lt;}} opening angle bracket; it goes only in the very front. Opening tags and closing tags must be treated separately.
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+&lt;span style=color:blue&gt; Blue &lt;/span&gt;
+&lt;&lt;nowiki /&gt;span style=color:blue&gt; Blue &lt;&lt;nowiki /&gt;/span&gt;
+&lt;section end=la&lt;nowiki /&gt;bel /&gt;
+&lt;&lt;nowiki /&gt;section end=label /&gt;&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:&lt;span style=color:blue&gt; Blue &lt;/span&gt;
+:&lt;&lt;nowiki /&gt;span style=color:blue&gt; Blue &lt;&lt;nowiki /&gt;/span&gt;
+:&lt;section end=la&lt;nowiki /&gt;bel /&gt; {{cross}}
+:&lt;&lt;nowiki /&gt;section end=label /&gt; {{tick}}
+&lt;/poem&gt;
+}}
+Use template {{tl|tag}} instead of nowiki tags to display parser tags:
+
+'''Character entities''', nowiki cannot escape.
+To escape HTML or special character entities, replace &lt;code&gt;&amp;&lt;/code&gt; with &lt;code&gt;&amp;amp;amp;&lt;/code&gt;.
+For example, &lt;code&gt;&amp;amp;amp;lt;&lt;/code&gt; &amp;rarr; &lt;code&gt;&amp;amp;lt;&lt;/code&gt;
+
+To '''display a nowiki tag''', you can (1) use {{tl|tag}}, (2) replace the &lt; left angle bracket with its HTML character entity, or (3) nest nowiki tags in each other:
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+{{ tag | nowiki }}
+&lt;code&gt;&amp;amp;lt; nowiki&gt;...&amp;amp;lt;/ nowiki &gt;&lt;/code&gt;
+&lt;code&gt;&lt;&lt;nowiki /&gt;nowiki&gt;...&lt;&lt;nowiki /&gt;/ nowiki &gt;&lt;/code&gt;&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:{{ tag | nowiki }}
+:&lt;code&gt;&amp;lt; nowiki&gt;...&amp;lt;/ nowiki &gt;&lt;/code&gt;
+:&lt;code&gt;&lt;&lt;nowiki /&gt; nowiki&gt;...&lt;&lt;nowiki /&gt;/ nowiki &gt;&lt;/code&gt;
+&lt;/poem&gt;
+|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+{{ tag | nowiki | s }}
+&lt;code&gt;&amp;amp;lt; nowiki /&gt;&lt;/code&gt;
+&lt;code&gt;&amp;lt;&amp;lt;nowiki /&gt; nowiki /&gt;&lt;/code&gt;
+&lt;code&gt;&amp;lt;nowiki&gt;&amp;lt; nowiki /&gt;&amp;lt;/nowiki&gt;&lt;/code&gt;&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:{{ tag | nowiki | s }}
+:&lt;code&gt;&amp;lt; nowiki /&gt;&lt;/code&gt;
+:&lt;code&gt;&lt;&lt;nowiki /&gt; nowiki /&gt;&lt;/code&gt;
+:&lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;&lt; nowiki /&gt;&lt;/syntaxhighlight&gt;
+&lt;/poem&gt;
+}}
+Nowiki tags do not otherwise nest, so it is the second and fourth that displays:
+{{markup|
+&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;
+1&amp;lt;nowiki&gt;2&amp;lt;nowiki&gt;3&lt;/nowiki&gt;4&lt;/nowiki&gt;
+&amp;lt;nowiki&gt;{{!}}&amp;lt;nowiki&gt;&lt;/nowiki&gt;{{!}}&lt;/nowiki&gt;
+&lt;/syntaxhighlight&gt;
+|
+&lt;poem&gt;
+:1&lt;nowiki&gt;2&lt;nowiki&gt;3&lt;/nowiki&gt;4&lt;/nowiki&gt; {{spaces|5}} ''{{small|second and fourth}}''
+:&lt;nowiki&gt;{{!}}&lt;nowiki&gt;&lt;/nowiki&gt;{{!}}&lt;/nowiki&gt;
+&lt;/poem&gt;
+}}
+These simply scan from left to right.
+The paired tags cannot overlap, because the very first pair-match nullifies any intervening tags inside. Unbalanced tags always display.
+
+Nowiki tags do not display table markup, use {{tag|pre}}.
+
+===Pre===
+{{shortcut|WP:PRE}}
+
+{{tag|pre|o}} is a parser tag that emulates the HTML {{tag|pre|o}} tag. It defines preformatted text that is displayed in a fixed-width font and is enclosed in a dashed box. HTML-like and wiki markup tags are escaped, spaces and line breaks are preserved, but HTML elements are parsed.
+
+{{markup|title={{tag|pre|o}} examples
+|&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;pre&gt;&lt;!--Comment--&gt;
+
+[[wiki]] markup &amp;amp;&lt;/pre&gt;&lt;/syntaxhighlight&gt;
+|&lt;syntaxhighlight lang=&quot;text&quot;&gt;&lt;!--Comment--&gt;
+
+[[wiki]] markup &amp;amp;&lt;/syntaxhighlight&gt;
+}}
+
+As {{tag|pre|o}} is a parser tag, it escapes wikitext and HTML tags. This can be prevented with the use of &lt;nowiki&gt;&lt;includeonly&gt;&lt;/includeonly&gt;&lt;/nowiki&gt; within the {{tag|pre|o}}, making it act more like its HTML equivalent:
+
+{{markup|title={{tag|pre|o}} with &lt;nowiki&gt;&lt;includeonly&gt;&lt;/includeonly&gt;&lt;/nowiki&gt; example
+|&lt;syntaxhighlight lang=&quot;wikitext&quot;&gt;&lt;pre&lt;includeonly&gt;&lt;/includeonly&gt;&gt;&lt;!--Comment--&gt;
+
+[[wiki]] markup &amp;amp;&lt;/pre&gt;&lt;/syntaxhighlight&gt;
+|&lt;pre&lt;includeonly&gt;&lt;/includeonly&gt;&gt;&lt;!--Comment--&gt;
+
+[[wiki]] markup &amp;amp;&lt;/pre&gt;
+}}
+
+Invisible HTML {{tag|pre|o}} tags can also be inserted by preceding text with a space character, like:
+
+ &lt;!--Comment--&gt;
+ [[wiki]] markup &amp;amp;
+
+Alternatively, consider using {{tl|pre}} template or {{xtag|syntaxhighlight|p|params=lang=&quot;text&quot;}}.
+
+==Invisible text (comments)==
+{{see also|Help:Hidden text}}
+
+It's uncommon{{spaced ndash}}but on occasion acceptable for notes to other editors{{spaced ndash}}to add a hidden comment within the text of an article. These comments are visible only when editing or viewing the source of a page. Most comments should go on the appropriate [[Wikipedia:Talk page|Talk page]]. &lt;!-- This is an example of text that is not visible except in &quot;edit&quot; mode. --&gt; The format is to surround the hidden text with &quot;&lt;code&gt;&amp;lt;!--&lt;/code&gt;&quot; and &quot;&lt;code&gt;--&amp;gt;&lt;/code&gt;&quot; and may cover several lines, e.g.:
+ &lt;nowiki&gt;&lt;!-- An example of hidden comments
+ This won't be visible except in &quot;edit&quot; mode. --&gt;&lt;/nowiki&gt;
+
+Another way to include a comment in the wiki markup uses the {{tl|Void}} template, which can be abbreviated as {{tl|^}}. This template &quot;expands&quot; to the empty string, generating no HTML output; it is visible only to people editing the wiki source. Thus {{nowrap|1=&lt;code&gt;{{tlp|^|A lengthy comment here}}&lt;/code&gt;}} operates similarly to the comment {{nowrap|1=&lt;code&gt;&amp;lt;!-- A lengthy comment here --&amp;gt;&lt;/code&gt;}}. The main difference is that the template version can be nested, while attempting to nest HTML comments produces odd results.
+
+==Variables==
+
+{{seealso| Help:Magic words#Variables}}
+
+{| style=&quot;text-align:center&quot; class=&quot;wikitable&quot;
+|-
+! Code
+! Effect
+! Notes
+|-
+| &lt;nowiki&gt;{{CURRENTWEEK}}&lt;/nowiki&gt; || {{CURRENTWEEK}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTDOW}}&lt;/nowiki&gt; || {{CURRENTDOW}}
+|
+Monday = 1, Tuesday = 2, etc., but Sunday = 0
+
+|-
+| &lt;nowiki&gt;{{CURRENTMONTH}}&lt;/nowiki&gt; || {{CURRENTMONTH}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTMONTHNAME}}&lt;/nowiki&gt;
+| {{CURRENTMONTHNAME}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTMONTHNAMEGEN}}&lt;/nowiki&gt;
+| {{CURRENTMONTHNAMEGEN}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTDAY}}&lt;/nowiki&gt; || {{CURRENTDAY}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTDAYNAME}}&lt;/nowiki&gt; || {{CURRENTDAYNAME}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTYEAR}}&lt;/nowiki&gt; || {{CURRENTYEAR}}
+|
+|-
+| &lt;nowiki&gt;{{CURRENTTIME}}&lt;/nowiki&gt; || {{CURRENTTIME}}
+|
+|-
+| &lt;nowiki&gt;{{NUMBEROFARTICLES}}&lt;/nowiki&gt;
+| {{NUMBEROFARTICLES}}
+|
+|-
+| &lt;nowiki&gt;{{NUMBEROFPAGES}}&lt;/nowiki&gt;
+| {{NUMBEROFPAGES}}
+|
+|-
+| &lt;nowiki&gt;{{NUMBEROFUSERS}}&lt;/nowiki&gt;
+| {{NUMBEROFUSERS}}
+|
+|-
+| &lt;nowiki&gt;{{PAGENAME}}&lt;/nowiki&gt; || {{PAGENAME}}
+|
+|-
+| &lt;nowiki&gt;{{NAMESPACE}}&lt;/nowiki&gt; || {{NAMESPACE}}
+|
+|-
+| &lt;nowiki&gt;{{REVISIONID}}&lt;/nowiki&gt; || {{REVISIONID}}
+|
+|-
+| &lt;nowiki&gt;{{REVISIONUSER}}&lt;/nowiki&gt; || {{REVISIONUSER}}
+|
+|-
+| &lt;nowiki&gt;{{localurl:pagename}}&lt;/nowiki&gt;
+| {{localurl:pagename}}
+|
+|-
+| &lt;nowiki&gt;{{localurl:&lt;/nowiki&gt;''Wikipedia:Sandbox''&lt;nowiki&gt;|action=edit}}&lt;/nowiki&gt;
+| {{localurl:Wikipedia:Sandbox|action=edit}}
+|
+|-
+| &lt;nowiki&gt;{{fullurl:pagename}}&lt;/nowiki&gt;
+| {{fullurl:pagename}}
+|
+|-
+| &lt;nowiki&gt;{{fullurl:pagename|&lt;/nowiki&gt;''query_string''&lt;nowiki&gt;}}&lt;/nowiki&gt;
+| {{fullurl:pagename|query_string}}
+|
+|-
+| &lt;nowiki&gt;{{SERVER}}&lt;/nowiki&gt; || {{SERVER}}
+|
+|-
+| &lt;nowiki&gt;{{ns:1}}&lt;/nowiki&gt; || {{ns:1}}
+|
+&lt;nowiki&gt;{{ns:&lt;/nowiki&gt;''index''&lt;nowiki&gt;}} e.g. {{ns:1}}&lt;/nowiki&gt;  &amp;rarr;  full name of namespace
+
+|-
+| &lt;nowiki&gt;{{SITENAME}}&lt;/nowiki&gt; || {{SITENAME}}
+|
+|}
+
+'''{{tlf|NUMBEROFARTICLES}}''' is the number of pages in the main namespace that contain a link and are not a redirect. This includes full articles, stubs containing a link, and disambiguation pages.
+
+'''{{tlf|CURRENTMONTHNAMEGEN}}''' is the genitive (possessive) grammatical form of the month name, as used in some languages but not in English; '''{{tlf|CURRENTMONTHNAME}}''' is the nominative (subject) form, as usually seen in English.
+
+In languages where it makes a difference, you can use constructs like &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;{{grammar:case|word}}&lt;/syntaxhighlight&gt; to convert a word from the nominative case to some other case. For example, &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;{{grammar:genitive|{{CURRENTMONTHNAME}}}}&lt;/syntaxhighlight&gt; means the same as &lt;syntaxhighlight lang=&quot;wikitext&quot; inline&gt;{{CURRENTMONTHNAMEGEN}}&lt;/syntaxhighlight&gt;. &lt;!-- Is there a reference for this, other than the source code (for example, phase3/languages/Lnaguage*.php) ? --&gt;
+
+==HTML==
+{{main|Help:HTML in wikitext}}
+
+Many [[HTML]] tags can be used in wiki markup. You can check your HTML by using [[Help:Markup validation|markup validation]].
+
+==Common templates==
+{{quicktemplates |state=expanded}}
+
+==Notes==
+{{Notelist}}
+
+==See also==
+{{Help desk}}
+See the 'Coding wiki markup' section of the Help navigation navbox below for additional links.
+*[[Wikipedia:User page design guide/Style]]
+*[[Wikipedia:Extended image syntax]]: advanced [[Help:Visual file markup|visual file markup]].
+*[[Help:A quick guide to templates]]: an introduction to [[Help:Template|templates]].
+*[[Help:Substitution]]: substitution is an alternative way of including templates than [[Wikipedia:Transclusion|transclusion]].
+*[[Help:Score]]: how to render musical scores.
+*[[Help:Displaying a formula]]: displaying mathematical formulae.
+*{{wikibooks-inline|Editing Wikitext}}.
+*[[mw:Parsoid|Parsoid]]: MediaWiki application that allows for converting back and forth between wikitext and HTML.
+*{{tl|Syntaxhighlight}}: template to show wrapped syntax-highlighted text.
+
+{{Wikipedia directories}}
+{{Wikipedia editor navigation}}
+{{Tools |state=collapsed}}
+
+[[Category:Wikipedia how-to]]
+[[Category:Wikipedia editor help]]
+[[Category:Wikipedia text help]]
+[[Category:Wikipedia article elements help]]</text>
+      <sha1>bamg207szjh2plik8rtcxdltfxfnak9</sha1>
+    </revision>
+  </page>

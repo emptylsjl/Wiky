@@ -341,13 +341,15 @@ def gen_rnd(length=15, allow="1"):
 
     return [random.randrange(len(a)) for i in range(length)]
 
+
 if __name__ == '__main__':
 
     ct = 0
     for i in Path("..").iterdir():
         if i.is_dir() and i.name in ["crates", "src", "py"]:
             for f in i.rglob("*"):
-                if f.is_file() and '.idea' not in f.parts and f.suffix not in [".pyc", ".log"]:
+                if f.is_file() and '.idea' not in f.parts and f.suffix not in [".pyc", ".log", ".mediawiki"]:
+                    # print(f)
                     ct += f.read_text("utf-8").count("\n")
 
     print(ct )

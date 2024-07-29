@@ -31,7 +31,7 @@ import r
 from py.wiky_conn import DBConn
 
 r.set_logger('wiky_db.log')
-logger = r.get_logger('wiky_db_setup')
+logger = r.get_logger('wiky_db_setup ')
 
 
 init_db = lambda db_name: f"create database if not exists {db_name};"
@@ -48,8 +48,8 @@ create table uni_account (
     display_name char(30) not null,
     pwd_hash char(128) not null,
     mail char(60) not null,
-    phone char(20),
-    status enum('pending', 'live', 'hold', 'yanked', 'archive', 'deleted') not null,
+    phone char(20), 
+    acc_status enum('pending', 'live', 'hold', 'yanked', 'archive', 'deleted') not null,
     time_created timestamp default current_timestamp,
     time_updated timestamp default current_timestamp,
     index uni_uuid_index (uni_uuid),
@@ -66,6 +66,69 @@ create table service_maintained (
 ) engine = InnoDB;
 '''.strip()
 
+init_zstd_range = '''
+create table zstd_range (
+    incr_id bigint auto_increment primary KEY,
+    st bigint unique,
+    ed bigint unique,
+    unique (st, ed),
+    index st_index (st),
+    index ed_index (ed)
+) engine = InnoDB;
+'''.strip()
+
+init_wiky_category = '''
+create table wiky_category (
+    page_id bigint primary KEY,
+    category varchar(140) not null,
+    index category_index (category)
+) engine = InnoDB;
+'''.strip()
+
+init_wiky_index = '''
+create table wiky_index (
+    incr_id bigint auto_increment primary KEY,
+    page_id bigint not null,
+    zstd_st bigint not null,
+    link_count int default 0,
+    sect_count int default 0,
+    revi_count int default 0,
+    page_type enum(
+        'redirect', 'template', 'wikipedia', 'portals',
+        'categories', 'module', 'help', 'article'
+    ) not null,
+    page_title varchar(280) not null,
+    foreign key (zstd_st) references zstd_range(st),
+    index page_id_index (page_id),
+    index page_type_index (page_type),
+    index page_title_index (page_title)
+) engine = InnoDB;
+'''.strip()
+
+init_wiky_page_link = '''
+create table wiky_page_link (
+    page_id bigint,
+    parent_id bigint,
+    foreign key (page_id) references wiky_index(page_id),
+    foreign key (parent_id) references wiky_category(page_id),
+    unique (page_id, parent_id),
+    index page_id_index (page_id),
+    index parent_id_index (parent_id)
+) engine = InnoDB;
+'''.strip()
+
+# init_wiky_category_link = '''
+# create table wiky_wiky_category_link (
+#     page_id bigint,
+#     parent_id int,
+#     foreign key (page_id) references wiky_index(page_id),
+#     foreign key (parent_id) references wiky_category(incr_id),
+#     unique (page_id, parent_id),
+#     index page_id_index (page_id),
+#     index parent_id_index (parent_id)
+# ) engine = InnoDB;
+# '''.strip()
+
 init_wiky_user_account = '''
 create table wiky_user_account (
     incr_id bigint auto_increment primary key,
@@ -74,7 +137,7 @@ create table wiky_user_account (
     username char(20) unique,
     user_uuid binary(16) unique,
     display_name char(30) not null,
-    status enum('pending', 'live', 'hold', 'yanked', 'archive', 'deleted') not null,
+    acc_status enum('pending', 'live', 'hold', 'yanked', 'archive', 'deleted') not null,
     time_created timestamp default current_timestamp,
     time_updated timestamp default current_timestamp,
     foreign key (uni_incr_id) references uni_account(incr_id),
@@ -87,69 +150,99 @@ create table wiky_user_account (
 init_wiky_user_profile = '''
 create table wiky_user_profile (
     incr_id bigint auto_increment primary key,
-    uni_incr_id bigint unique,
     wiky_incr_id bigint unique,
-    level INT DEFAULT 0,
+    ranks INT DEFAULT 0,
     balance INT DEFAULT 0,
-    storage INT DEFAULT 0,
-    page_count INT DEFAULT 0,
     pull_count INT DEFAULT 0,
-    foreign key (uni_incr_id) references uni_account(incr_id),
     foreign key (wiky_incr_id) references wiky_user_account(incr_id),
-    index uni_incr_id_index (uni_incr_id),
     index wiky_incr_id_index (wiky_incr_id)
+) engine = InnoDB;
+'''.strip()
+
+init_wiky_user_description = '''
+create table wiky_user_intro (
+    incr_id bigint auto_increment primary key,
+    wiky_incr_id bigint unique,
+    description varchar(60),
+    foreign key (wiky_incr_id) references wiky_user_account(incr_id)
 ) engine = InnoDB;
 '''.strip()
 
 init_wiky_session = '''
 create table wiky_session (
     session_id bigint auto_increment primary key,
-    uni_incr_id bigint unique,
     wiky_incr_id bigint unique,
     user_uuid binary(16) unique,
     session_token char(84) not null,
     token_validity datetime(3) not null,
     login_time datetime(3) default current_timestamp(3),
     index user_uuid_index (user_uuid),
-    index uni_incr_id_index (uni_incr_id),
     index wiky_incr_id_index (wiky_incr_id)
 ) engine=memory;
+'''.strip()
+
+init_wiky_item_list = '''
+create table wiky_item_list (
+    incr_id int auto_increment primary key,
+    item_name char(30) unique,
+    item_stat enum('live', 'yanked'),
+    index item_name_index (item_name)
+) engine = InnoDB;
+'''.strip()
+
+init_wiky_item_shop = '''
+create table wiky_item_shop (
+    incr_id bigint auto_increment primary key,
+    item_id int unique,
+    item_cost int unsigned not null,
+    foreign key (item_id) references wiky_item_list(incr_id)
+) engine = InnoDB;
 '''.strip()
 
 init_wiky_user_storage = '''
 create table wiky_user_storage (
     incr_id bigint auto_increment primary key,
-    uni_incr_id bigint unique,
-    wiky_incr_id bigint unique,
-    wiky_storage json,
-    foreign key (uni_incr_id) references uni_account(incr_id),
-    foreign key (wiky_incr_id) references wiky_user_account(incr_id)
+    wiky_incr_id bigint not null,
+    item_id int not null,
+    item_count int not null,
+    foreign key (wiky_incr_id) references wiky_user_account(incr_id),
+    foreign key (item_id) references wiky_item_list(incr_id),
+    unique (wiky_incr_id, item_id)
 ) engine = InnoDB;
 '''.strip()
 
-init_wiky_task_list = '''
-create table wiky_task_list (
-    uni_incr_id bigint unique,
-    wiky_incr_id bigint unique,
-    type enum('main', 'yanked'),
-    progress float,
-    setting json,
-    foreign key (uni_incr_id) references uni_account(incr_id),
-    foreign key (wiky_incr_id) references wiky_user_account(incr_id)
+init_wiky_user_collection = '''
+create table wiky_user_collection (
+    incr_id bigint auto_increment primary key,
+    wiky_incr_id bigint not null,
+    page_incr_id bigint not null,
+    foreign key (wiky_incr_id) references wiky_user_account(incr_id),
+    foreign key (page_incr_id) references wiky_index(incr_id),
+    unique (wiky_incr_id, page_incr_id)
 ) engine = InnoDB;
 '''.strip()
 
-init_wiky_main_task = '''
-create table wiky_main_task (
-    uni_incr_id bigint unique,
-    wiky_incr_id bigint unique,
-    status enum('filled', 'unfilled', 'blocked', 'ignored', 'reported', 'yanked'),
-    progress float,
-    setting json,
-    foreign key (uni_incr_id) references uni_account(incr_id),
-    foreign key (wiky_incr_id) references wiky_user_account(incr_id)
-) engine = InnoDB;
-'''.strip()
+# init_wiky_task_list = '''
+# create table wiky_task_list (
+#     wiky_incr_id bigint unique,
+#     task_type enum('main', 'yanked'),
+#     progress float,
+#     setting json,
+#     foreign key (wiky_incr_id) references wiky_user_account(incr_id)
+# ) engine = InnoDB;
+# '''.strip()
+#
+# init_wiky_main_task = '''
+# create table wiky_main_task (
+#     uni_incr_id bigint unique,
+#     wiky_incr_id bigint unique,
+#     status enum('filled', 'unfilled', 'blocked', 'ignored', 'reported', 'yanked'),
+#     progress float,
+#     setting json,
+#     foreign key (uni_incr_id) references uni_account(incr_id),
+#     foreign key (wiky_incr_id) references wiky_user_account(incr_id)
+# ) engine = InnoDB;
+# '''.strip()
 
 init_wiky_relation = '''
 create table wiky_relation (
@@ -166,42 +259,9 @@ create table wiky_relation (
 
 init_wiky_setting = '''
 create table wiky_setting (
-    uni_incr_id bigint unique,
     wiky_incr_id bigint unique,
     setting json,
-    foreign key (uni_incr_id) references uni_account(incr_id),
     foreign key (wiky_incr_id) references wiky_user_account(incr_id)
-) engine = InnoDB;
-'''.strip()
-
-init_zstd_range = '''
-create table zstd_range (
-    incr_id bigint auto_increment primary KEY,
-    st bigint unique,
-    ed bigint unique,
-    unique (st, ed),
-    index st_index (st),
-    index ed_index (ed)
-) engine = InnoDB;
-'''.strip()
-
-init_wiky_index = '''
-create table wiky_index (
-    incr_id bigint auto_increment primary KEY,
-    zstd_st bigint not null,
-    page_id bigint unique,
-    redirect bigint default -1,
-    page_title varchar(280) not null,
-    page_type enum(
-        'article', 'vital', 'featured', 'good', 'spoken', 'overviews', 
-        'outlines', 'lists', 'portals', 'glossaries', 'categories', 'indices'
-    ),
-    main_category binary(32),
-    link_count int default 0,
-    sect_count int default 0,
-    foreign key (zstd_st) references zstd_range(st),
-    index zstd_st_index (zstd_st),
-    index page_id_index (page_id)
 ) engine = InnoDB;
 '''.strip()
 
@@ -212,20 +272,31 @@ def setup():
         db.cursor.execute(drop_db("wiky_base"))
         db.cursor.execute(init_db("wiky_base"))
         db.cursor.execute(use_db("wiky_base"))
+
         db.cursor.execute(init_uni_account)
         db.cursor.execute(init_service_maintained)
-        db.cursor.execute(init_wiky_user_account)
-        db.cursor.execute(init_wiky_user_profile)
-        db.cursor.execute(init_wiky_user_storage)
-        db.cursor.execute(init_wiky_session)
-        db.cursor.execute(init_wiky_task_list)
-        db.cursor.execute(init_wiky_main_task)
-        db.cursor.execute(init_wiky_relation)
-        db.cursor.execute(init_wiky_setting)
+
         db.cursor.execute(init_zstd_range)
         db.cursor.execute(init_wiky_index)
+        db.cursor.execute(init_wiky_category)
+        db.cursor.execute(init_wiky_page_link)
+        # db.cursor.execute(init_wiky_category_link)
+
+        db.cursor.execute(init_wiky_user_account)
+        db.cursor.execute(init_wiky_user_profile)
+        db.cursor.execute(init_wiky_user_description)
+        db.cursor.execute(init_wiky_session)
+        db.cursor.execute(init_wiky_relation)
+        db.cursor.execute(init_wiky_setting)
+        db.cursor.execute(init_wiky_item_list)
+        db.cursor.execute(init_wiky_item_shop)
+        db.cursor.execute(init_wiky_user_storage)
+        db.cursor.execute(init_wiky_user_collection)
 
         db.cursor.execute("alter table wiky_index convert to character set utf8mb4 collate utf8mb4_unicode_ci;")
+        db.cursor.execute("alter table wiky_category convert to character set utf8mb4 collate utf8mb4_unicode_ci;")
+        db.cursor.execute("alter table wiky_user_intro convert to character set utf8mb4 collate utf8mb4_unicode_ci;")
+        db.cursor.execute("alter table wiky_item_list convert to character set utf8mb4 collate utf8mb4_unicode_ci;")
     except Exception as e:
         logger.error(f"wiky_db setup error: {repr(e)} - {repr(traceback.format_exc())}")
         print(e, traceback.format_exc())
@@ -243,7 +314,7 @@ def setup():
     logger.info(f"wiky_db table creation complete")
 
 
-def setup_wiky_index():
+def wiky_parser_setup():
     import wiky
 
     src_bz2_simple = "path/to/dump"

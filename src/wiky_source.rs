@@ -1,9 +1,9 @@
 
 use std::collections::{HashMap, HashSet};
 use std::{fs, io, time, vec};
-use std::fmt::{Display, format};
+use std::fmt::{Display, format, Formatter};
 use std::fs::File;
-use std::io::{BufReader, SeekFrom};
+use std::io::{BufReader, BufWriter, SeekFrom};
 use std::io::prelude::*;
 use std::iter::once;
 use std::ops::{Add, Shr, Sub};
@@ -14,7 +14,9 @@ use std::time::Instant;
 use bzip2::{Compression, Decompress};
 use bzip2::read::{BzEncoder, BzDecoder};
 use anyhow::{Context, Result};
+use chrono::DateTime;
 use itertools::Itertools;
+use memchr;
 use nohash_hasher::BuildNoHashHasher;
 use quickxml_to_serde::{Config, xml_string_to_json};
 use rayon::prelude::*;
@@ -22,6 +24,11 @@ use rayon::ThreadPoolBuilder;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 use pyo3::prelude::*;
+use quick_xml::de;
+use quick_xml::utils::is_whitespace;
+use regex::Regex;
+use serde::Deserialize;
+use utils::*;
 
 use crate::constant::*;
 use crate::misc::*;
@@ -70,6 +77,96 @@ impl OffsetId {
 type Indexes = u64;
 #[cfg(not(feature = "index_u64"))]
 type Indexes = (u64, String);
+
+#[cfg(feature = "index_u64")]
+fn to_str(i: &Indexes) -> String {
+    i.to_string()
+}
+#[cfg(not(feature = "index_u64"))]
+fn to_str(i: &Indexes) -> String {
+    i.0.to_string() + ", " + &i.1
+}
+
+pub fn decode_chunk(zstd_path: &str, chunk_st: usize, chunk_ed: usize) -> PyResult<String> {
+    let mut zstd_buf = vec![0; chunk_ed-chunk_st];
+    let mut wiki_zstd =
+        fs::OpenOptions::new()
+            .read(true)
+            .open(zstd_path)?;
+
+    wiki_zstd.seek(SeekFrom::Start(chunk_st as u64)).unwrap();
+    wiki_zstd.read_exact(&mut zstd_buf[..(chunk_ed-chunk_st)]).unwrap();
+
+    let mut dst = vec![0; 60_200_000];
+    let len = zstd_safe::decompress(&mut dst, &zstd_buf)
+        .map_err(|e| py_err(e.to_string()))?;
+    dst.truncate(len);
+    String::from_utf8(dst).map_err(|e| py_err(e.to_string()))
+}
+
+
+#[derive(Debug, Deserialize)]
+pub struct PageMeta {
+    #[serde(rename = "id")]
+    pub page_id: u64,
+    pub redirect: Option<Redirect>,
+    #[serde(rename = "revision")]
+    pub revisions: Vec<Revision<XmlSize>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PageText {
+    #[serde(rename = "id")]
+    pub page_id: String,
+    pub title: String,
+    pub redirect: Option<Redirect>,
+    #[serde(rename = "revision")]
+    pub revisions: Revision<XmlText>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Redirect {
+    #[serde(rename = "@title")]
+    pub title: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Revision<T> {
+    pub id: u64,
+    pub timestamp: String,
+    // contributor: Contributor,
+    pub text: T,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Contributor {
+    pub ip: Option<String>,
+    pub id: Option<String>,
+    #[serde(rename = "username")]
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct XmlSize {
+    #[serde(rename = "@bytes")]
+    pub bytes: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct XmlText {
+    #[serde(rename = "$value")]
+    pub text: Option<String>,
+}
+
+impl Display for Revision<XmlSize> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f, "{}-{}",
+            DateTime::parse_from_rfc3339(&self.timestamp).unwrap_or_else(|e| panic!("{e}-{}", &self.timestamp)).timestamp(),
+            self.text.bytes
+        )
+    }
+}
 
 #[pyclass]
 #[derive(Clone)]
@@ -133,7 +230,7 @@ impl WikySource {
             .context("open zstd fail")
     }
 
-    pub fn chunks<'a, T, F: FnMut(u64, u64, &[(u64, u64, Vec<Indexes>)], &mut [u8]) -> T + 'a>(
+    pub fn chunk_map<'a, T, F: FnMut(u64, Vec<(u64, &[u8], &Vec<Indexes>)>) -> T + 'a>(
         &'a self,
         chunk_size: usize,
         mut runner: F
@@ -148,8 +245,85 @@ impl WikySource {
             wiki_zstd.seek(SeekFrom::Start(chunk_st)).unwrap();
             wiki_zstd.read_exact(&mut zstd_buf[..(chunk_ed-chunk_st) as usize]).unwrap();
 
-            runner(chunk_st, chunk_ed, ranges, &mut zstd_buf)
+            let zstd_bufs = ranges.iter().map(|(st_o, ed_o, v)| {
+                let (st, ed) = ((st_o - chunk_st) as usize, (ed_o - chunk_st) as usize);
+                (*st_o, &zstd_buf[st..ed], v)
+            }).collect_vec();
+
+            runner(chunk_st, zstd_bufs)
         })
+    }
+
+    pub fn category_index<W: Write>(&self, buf: &mut W) {
+        self.chunk_map(*oc_get(&THREAD_COUNT), |ck_st, zstd_buf| {
+            println!("{ck_st}");
+
+            let iters = zstd_buf.into_par_iter().map(|(st, buf, v)| {
+
+                let mut dst = vec![0; 200_000_000];
+                let dst_size = zstd_safe::decompress(&mut dst, buf)
+                    .unwrap_or_else(|err| panic!("st:{ck_st} - zstd_err:{err}"));
+                let pages = de::from_reader::<_, Vec<PageText>>(&dst[..dst_size])
+                    .unwrap_or_else(|err| panic!("st:{ck_st} - xml_de_err:{err}"));
+
+                let cmt_re = Regex::new(r"<!--.*?-->").unwrap();
+                let pre_re = Regex::new(r"(?s)<pre>.*?</pre>").unwrap();
+                let ref_re = Regex::new(r"(?s)<ref>.*?</ref>").unwrap();
+                let code_re = Regex::new(r"(?s)<code>.*?</code>").unwrap();
+                let nowiki_re = Regex::new(r"(?s)<nowiki>.*?</nowiki>").unwrap();
+                let noinclude_re = Regex::new(r"(?s)<noinclude>.*?</noinclude>").unwrap();
+                let includeonly_re = Regex::new(r"(?s)<includeonly>.*?</includeonly>").unwrap();
+
+                let space_re = Regex::new(r"  +").unwrap();
+
+                let category_re = Regex::new(r"\[\[Category:([^|\]]*)").unwrap();
+
+                let parsed = pages.into_iter()
+                    .filter_map(move |mut p| if let (None, Some(mut xml_text)) = (p.redirect, p.revisions.text.text) {
+                        if p.title.starts_with("Module:") || p.title.starts_with("Template:") {
+                            None
+                        } else {
+                            unsafe {
+                                let text_buf = xml_text.as_bytes_mut();
+                                let ranges = nowiki_re
+                                    .find_iter(std::str::from_utf8_unchecked(text_buf))
+                                    .chain(cmt_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    // .chain(pre_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(ref_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(code_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(noinclude_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(includeonly_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .map(|m| (m.start(), m.end()))
+                                    .collect_vec();
+
+                                ranges.into_iter()
+                                    .for_each(|(s, e)| {
+                                        for i in s..e {
+                                            text_buf[i] = 0x20;
+                                        }
+                                    });
+                            }
+
+                            let categories = category_re.captures_iter(&xml_text)
+                                .map(|c| c.get(1).map(|m| trim_s(m.as_str())))
+                                .flatten()
+                                .filter(|s| memchr::memchr(b'\n', s.as_bytes()).is_none())
+                                .map(|s| space_re.replace_all(s, " "))
+                                .map(|s| s.to_string())
+                                .join("|");
+
+                            Some(p.page_id + "|" + &p.title + "|" + &categories)
+                        }
+                    } else {
+                        None
+                    });
+                parsed
+            }).collect::<Vec<_>>();
+
+            iters.into_iter().flatten().for_each(|s| {
+                buf.write_all((s+"\n").as_bytes()).unwrap()
+            })
+        }).count();
     }
 }
 
@@ -161,22 +335,12 @@ impl WikySource {
         Self::from_path(index_path, zstd_path)
     }
 
-    pub fn decode_chunk(&self, chunk_st: usize, chunk_ed: usize) -> PyResult<String> {
-        let mut zstd_buf = vec![0; chunk_ed-chunk_st];
-        let mut wiki_zstd = self.open_zstd().unwrap();
-
-        wiki_zstd.seek(SeekFrom::Start(chunk_st as u64)).unwrap();
-        wiki_zstd.read_exact(&mut zstd_buf[..(chunk_ed-chunk_st)]).unwrap();
-
-        let mut dst = vec![0; 60_200_000];
-        let len = zstd_safe::decompress(&mut dst, &zstd_buf)
-            .map_err(|e| py_err(e.to_string()))?;
-        dst.truncate(len);
-        String::from_utf8(dst).map_err(|e| py_err(e.to_string()))
+    pub fn zstd_path_str(&self) -> &str {
+        self.zstd_path.as_os_str().to_str().unwrap()
     }
 
     pub fn decode_page_json(&self, chunk_st: usize, chunk_ed: usize, page_id: u64) -> PyResult<String> {
-        let chunk_text = self.decode_chunk(chunk_st, chunk_ed)?;
+        let chunk_text = decode_chunk(self.zstd_path_str(), chunk_st, chunk_ed)?;
 
         let conf = Config::new_with_defaults();
         let json = xml_string_to_json(format!("<root>{chunk_text}</root>"), &conf)
@@ -187,14 +351,13 @@ impl WikySource {
 
     pub fn validate_index_dump(&self) -> PyResult<()> {
 
-        let _ = self.chunks((*THREAD_COUNT.get().unwrap_or(&4)) * 20, |chunk_st, chunk_ed, ranges, zstd_buf| {
+        let result = self.chunk_map((*THREAD_COUNT.get().unwrap_or(&4)) * 20, |chunk_st, zstd_bufs| {
 
-            let valid = ranges.par_iter().all(|(st, ed, v)| {
-                let (st, ed) = ((st - chunk_st) as usize, (ed - chunk_st) as usize);
+            let valid = zstd_bufs.par_iter().all(|(st, buf, v)| {
 
                 let mut dst = vec![0; 200_000_000];
-                let dst_size = zstd_safe::decompress(&mut dst, &zstd_buf[st..ed])
-                    .unwrap_or_else(|err| panic!("{chunk_st} - {chunk_ed} - zstd_err:{err}"));
+                let dst_size = zstd_safe::decompress(&mut dst, buf)
+                    .unwrap_or_else(|err| panic!("st:{chunk_st} - zstd_err:{err}"));
                 let text = std::str::from_utf8(&dst[..dst_size]).unwrap();
 
                 #[cfg(feature = "index_u64")]
@@ -202,20 +365,28 @@ impl WikySource {
                     text.contains(&("<id>".to_owned()+&id.to_string()+"</id>"))
                 });
                 #[cfg(not(feature = "index_u64"))]
-                let valid = v.iter().all(|(id, title)| {
+                let mut valid = v.iter().all(|(id, title)| {
+                    let title = if title.contains("") { "" } else { title.trim() };
                     text.contains(&("<id>".to_owned()+&id.to_string()+"</id>"))
-                        && text.contains(&("<title>".to_owned()+title.trim()+"</title>"))
+                        && text.contains(&("<title>".to_owned()+title+"</title>"))
                 });
-                let valid = valid && validate_xml(text).is_ok();
                 if !valid {
-                    fs::write(format!("C:/a/enwiki/debug/pages{st}-{ed}"), text).unwrap();
-                    fs::write(format!("C:/a/enwiki/debug/index{st}-{ed}"), v.iter().map(|x| format!("{x:?}")).join("\n")).unwrap();
+                    println!("validation error: st:{chunk_st}, text missmatch");
+                }
+                if let Err(e) = validate_xml(text) {
+                    println!("validation error: st:{chunk_st}, xml {e}");
+                    valid = false;
+                }
+                if !valid {
+                    fs::write(format!("C:/a/enwiki/debug/pages{chunk_st}"), text).unwrap();
+                    fs::write(format!("C:/a/enwiki/debug/index{chunk_st}"), v.iter().map(to_str).join("\n")).unwrap();
                 }
                 valid
             });
-            println!("- validate {valid:5} - {chunk_ed}  - {:7.4}%", (chunk_ed as f64 / self.zstd_len as f64) * 100.0);
+            println!("- validate {valid:5} - st:{chunk_st}  - {:7.4}%", (chunk_st as f64 / self.zstd_len as f64) * 100.0);
             valid
-        }).count();
+        }).collect_vec();
+        println!("validate result: {}", result.iter().all(|x| *x));
 
         Ok(())
     }
@@ -228,17 +399,15 @@ impl WikySource {
 
         let now = time::Instant::now();
 
-        let sizes = self.chunks(
+        let sizes = self.chunk_map(
             (*THREAD_COUNT.get().unwrap_or(&4)) * 20,
-            |chunk_st, chunk_ed, ranges, zstd_buf| {
-                println!("--- {chunk_st}:{chunk_ed} - {:7.4}%", (chunk_ed as f64 / self.zstd_len as f64) * 100.0);
+            |chunk_st, zstd_bufs| {
+                println!("--- st:{chunk_st} - {:7.4}%", (chunk_st as f64 / self.zstd_len as f64) * 100.0);
 
-                ranges.par_iter().map(|(st, ed, v)| {
-                    let (st, ed) = ((st - chunk_st) as usize, (ed - chunk_st) as usize);
-
+                zstd_bufs.par_iter().map(|(st, buf, v)| {
                     let mut dst = vec![0; 60_200_000];
-                    let dst_size = zstd_safe::decompress(&mut dst, &zstd_buf[st..ed])
-                        .unwrap_or_else(|err| panic!("{chunk_st} - {chunk_ed} - zstd_err:{err}"));
+                    let dst_size = zstd_safe::decompress(&mut dst, buf)
+                        .unwrap_or_else(|err| panic!("st:{chunk_st} - zstd_err:{err}"));
                     dst_size
                 }).collect::<Vec<_>>()
 
@@ -252,13 +421,94 @@ impl WikySource {
 
         Ok(())
     }
+
+    /// now i am thinking, is this really needed ???
+    pub fn category_list(&self) -> HashSet<String> {
+        self.chunk_map(*oc_get(&THREAD_COUNT), |ck_st, zstd_buf| {
+
+            println!("{ck_st}");
+            let iters = zstd_buf.into_par_iter().map(|(st, buf, v)| {
+
+                let mut dst = vec![0; 200_000_000];
+                let dst_size = zstd_safe::decompress(&mut dst, buf)
+                    .unwrap_or_else(|err| panic!("st:{ck_st} - zstd_err:{err}"));
+                let pages = de::from_reader::<_, Vec<PageText>>(&dst[..dst_size])
+                    .unwrap_or_else(|err| panic!("st:{ck_st} - xml_de_err:{err}"));
+
+                let cmt_re = Regex::new(r"<!--.*?-->").unwrap();
+                let pre_re = Regex::new(r"(?s)<pre>.*?</pre>").unwrap();
+                let ref_re = Regex::new(r"(?s)<ref>.*?</ref>").unwrap();
+                let code_re = Regex::new(r"(?s)<code>.*?</code>").unwrap();
+                let nowiki_re = Regex::new(r"(?s)<nowiki>.*?</nowiki>").unwrap();
+                let noinclude_re = Regex::new(r"(?s)<noinclude>.*?</noinclude>").unwrap();
+                let includeonly_re = Regex::new(r"(?s)<includeonly>.*?</includeonly>").unwrap();
+                // // let nowiki_re = Regex::new(r"<nowiki>(.*?)</nowiki>").unwrap();
+                // // let category_re = Regex::new(r"\[\[Category:([^|\]]+)\]\]").unwrap();
+
+                // let nowiki_re = Regex::new(
+                //     r"<!--.*?-->|<pre>.*?<\/pre>|<nowiki>.*?<\/nowiki>|<noinclude>.*?<\/noinclude>|<includeonly>.*?<\/includeonly>|"
+                // ).unwrap();
+
+                let space_re = Regex::new(r"  +").unwrap();
+
+                let category_re = Regex::new(r"\[\[Category:([^|\]]*)").unwrap();
+
+                pages.into_iter()
+                    .filter_map(move |mut p| if let (None, Some(mut xml_text)) = (p.redirect, p.revisions.text.text) {
+                        if p.title.starts_with("Module:") || p.title.starts_with("Template:") {
+                            None
+                        } else {
+                            unsafe {
+                                let text_buf = xml_text.as_bytes_mut();
+                                let ranges = nowiki_re
+                                    .find_iter(std::str::from_utf8_unchecked(text_buf))
+                                    .chain(cmt_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    // .chain(pre_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(ref_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(code_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(noinclude_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .chain(includeonly_re.find_iter(std::str::from_utf8_unchecked(text_buf)))
+                                    .map(|m| (m.start(), m.end()))
+                                    .collect_vec();
+
+                                ranges.into_iter()
+                                    .for_each(|(s, e)| {
+                                        for i in s..e {
+                                            text_buf[i] = 0x20;
+                                        }
+                                    });
+                            }
+                            let stage = category_re.captures_iter(&xml_text)
+                                .map(|c| c.get(1).map(|m| trim_s(m.as_str())))
+                                .flatten()
+                                .filter(|s| memchr::memchr(b'\n', s.as_bytes()).is_none())
+                                .map(|s| space_re.replace_all(s, " "))
+                                .map(|s| s.to_string())
+                                .collect_vec();
+                            Some(stage)
+                        }
+                    } else {
+                        None
+                    })
+                    .flatten()
+
+            }).collect::<Vec<_>>();
+
+            iters.into_iter().flatten().collect::<HashSet<_>>()
+
+        }).fold(HashSet::new(), |mut a, b| {
+            a.extend(b);
+            a
+        })
+    }
+
+    pub fn save_category_index(&self, dst_path: &str) -> PyResult<()> {
+        let fd = fs::File::create(dst_path)?;
+        let mut writer = BufWriter::new(fd);
+        self.category_index(&mut writer);
+        Ok(())
+    }
+
 }
 
-// #[pyclass]
-// #[derive(Clone)]
-// pub struct WikySourceIter {
-//     zstd_buf: Vec<u8>,
-//     indexes: [(u64, u64, Vec<Indexes>)],
-//     index: usize,
-// }
-
+//Parishes in Skye

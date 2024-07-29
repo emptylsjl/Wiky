@@ -32,29 +32,28 @@ use crate::setup::*;
 use crate::constant::*;
 use crate::wiky_source::*;
 
-fn create_dict(sample: &[u8], nb_sample: &[usize]) -> Result<Vec<u8>> {
-    let mut dict = vec![0u8; 1_240_000];
+pub fn train_zstd_dict(sample: &[u8], nb_sample: &[usize]) -> Result<Vec<u8>> {
+    let mut dict = vec![0u8; 20_000_000];
     let size = zstd_safe::train_from_buffer(&mut dict, sample, nb_sample)
         .map_err(|e| anyhow!("zstd_err:{e}"))?;
     dict.truncate(size);
     Ok(dict)
 }
-fn compress_string(s: &str, dict: &[u8]) -> Result<Vec<u8>> {
+
+pub fn compress_cdict(s: &[u8], dict: &zstd_safe::CDict) -> Result<Vec<u8>> {
     let mut cctx = CCtx::create();
-    let cdict = CDict::create(dict, 9); // Compression level 3
-    cctx.ref_cdict(&cdict).expect("ref failed");
+    let a = cctx.ref_cdict(dict).expect("ref failed");
 
     let mut compressed = vec![0u8; zstd_safe::compress_bound(s.len())];
-    let compressed_size = cctx.compress2(&mut compressed, s.as_bytes())
+    let compressed_size = cctx.compress2(&mut compressed, s)
         .map_err(|e| anyhow!("zstd_err:{e}"))?;
     compressed.truncate(compressed_size);
     Ok(compressed)
 }
 
-fn decompress_string(compressed: &[u8], dict: &[u8]) -> Result<Vec<u8>> {
+pub fn decompress_ddict(compressed: &[u8], dict: &zstd_safe::DDict) -> Result<Vec<u8>> {
     let mut dctx = DCtx::create();
-    let ddict = DDict::create(dict);
-    let a = dctx.ref_ddict(&ddict).expect("uh");
+    let a = dctx.ref_ddict(dict).expect("uh");
 
     let mut decompressed = vec![0u8; 60_000_000];
     let decompressed_size = dctx.decompress(&mut decompressed, compressed)

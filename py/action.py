@@ -61,6 +61,7 @@ def ensure_char(text: str, size) -> bool:
 
 
 def send_mail():
+    # dummy
     pass
 
 
@@ -95,7 +96,7 @@ def register_wiky(
             db.cursor.execute(
                 '''
                 insert into uni_account 
-                (uni_uuid, username, display_name, pwd_hash, mail, phone, status)
+                (uni_uuid, username, display_name, pwd_hash, mail, phone, acc_status)
                 values (%s, %s, %s, %s, %s, %s, %s)
                 '''.strip(),
                 (uuid.uuid4().bytes, username, display_name, pwd_hash, mail, phone, "live")
@@ -108,21 +109,12 @@ def register_wiky(
         db.cursor.execute(
             '''
             insert into wiky_user_account 
-            (uni_incr_id, service_id, user_uuid, username, display_name, status)
+            (uni_incr_id, service_id, user_uuid, username, display_name, acc_status)
             values (%s, %s, %s, %s, %s, %s)
             '''.strip(),
             (incr_id, 1, uuid.uuid4().bytes, username, display_name, "live")
         )
         wiky_incr_id = db.cursor.lastrowid
-
-        db.cursor.execute(
-            '''
-            insert into wiky_user_profile 
-            (uni_incr_id, wiky_incr_id)
-            values (%s, %s)
-            '''.strip(),
-            (incr_id, wiky_incr_id)
-        )
 
         send_mail()
         db.conn.commit()
@@ -161,7 +153,7 @@ def register_uni(
         db.cursor.execute(
             '''
             insert into uni_account 
-            (uni_uuid, username, display_name, pwd_hash, mail, phone, status)
+            (uni_uuid, username, display_name, pwd_hash, mail, phone, acc_status)
             values (%s, %s, %s, %s, %s, %s, %s)
             '''.strip(),
             (uuid.uuid4().bytes, username, display_name, pwd_hash, mail, phone, "pending")
@@ -196,10 +188,10 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
         dict_cursor.execute(
             """
             select 
-            t1.incr_id, t1.uni_incr_id, t1.username, t1.user_uuid, t1.status, 
-            t0.mail, t0.pwd_hash, t0.status
+            t1.incr_id, t1.uni_incr_id, t1.username, t1.user_uuid, t1.acc_status, 
+            t0.mail, t0.pwd_hash, t0.acc_status
             from 
-            wiky_user_account t1 JOIN uni_account t0 ON t1.uni_incr_id = t0.incr_id
+            wiky_user_account t1 join uni_account t0 on t1.uni_incr_id = t0.incr_id
             where t1.username = %s # maybe add mail
             """.strip(),
             (username,)
@@ -214,7 +206,7 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
             logger.warning(f"wiky_auth fail: {repr(username)} - password_missmatch")
             return (False, "password_missmatch")
 
-        if not row['status'] == row['status'] == "live":
+        if not row['acc_status'] == row['acc_status'] == "live":
             logger.warning(f"wiky_auth fail: {repr(username)} - account_invalid")
             return (False, "account_invalid")
 
@@ -224,11 +216,11 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
 
         dict_cursor.execute(
             '''
-            insert into wiky_session 
-            (uni_incr_id, wiky_incr_id, user_uuid, session_token, token_validity)
-            values (%s, %s, %s, %s, %s)
+            insert ignore into wiky_session 
+            (wiky_incr_id, user_uuid, session_token, token_validity)
+            values (%s, %s, %s, %s)
             '''.strip(),
-            (uni_incr, wiky_incr, wiky_uuid, token_now, validity)
+            (wiky_incr, wiky_uuid, token_now, validity)
         )
 
         logger.info(f"wiky_auth ok: {repr(username)}:{wiky_incr}")
@@ -242,23 +234,50 @@ def wiky_auth(db: DBConn, username: str, pwd: str) -> (bool, WikySession | str):
         return (False, "auth_error")
 
 
+def logout(db: DBConn, ws: WikySession):
+    try:
+        db.conn.begin()
+        db.cursor.execute(
+            '''
+            delete from wiky_session 
+            where wiky_incr_id = %s
+            '''.strip(),
+            (ws.wiky_incr,)
+        )
+        logger.info(f"logout ok: {repr(ws.wiky_incr)}:{ws.name}:{ws.login_time}")
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"logout error: {repr(ws.wiky_incr)}:{ws.name}:{repr(e)} - {repr(traceback.format_exc())}")
+        return False
+
+
 def create_wiky_profile(db: DBConn, ws: WikySession):
     try:
         db.conn.begin()
         db.cursor.execute(
             '''
             insert into wiky_user_profile 
-            (uni_incr_id, wiky_incr_id)
-            values (%s, %s)
+            (wiky_incr_id)
+            values (%s)
             '''.strip(),
-            (ws.uni_incr, ws.wiky_incr)
+            (ws.wiky_incr,)
         )
+
+        db.cursor.execute(
+            '''
+            insert into wiky_user_intro 
+            (wiky_incr_id)
+            values (%s)
+            '''.strip(),
+            (ws.wiky_incr,)
+        )
+
         db.conn.commit()
-        logger.info(f"create_wiky_profile ok: {repr(ws.name)}:{ws.wiky_incr}")
+        # logger.info(f"create_wiky_profile/intro ok: {repr(ws.name)}:{ws.wiky_incr}")
 
     except Exception as e:
         db.conn.rollback()
-        logger.error(f"create_wiky_profile error: {ws.name}:{repr(e)} - {repr(traceback.format_exc())}")
+        logger.error(f"create_wiky_profile/intro error: {ws.name}:{repr(e)} - {repr(traceback.format_exc())}")
         return False
 
 
@@ -327,8 +346,8 @@ def pull_wiky(db: DBConn, ws: WikySession, amount) -> (bool, str):
         db.conn.begin()
         db.cursor.execute(
             '''
-            select t0.wiky_incr_id, t0.balance, t1.wiky_storage
-            from wiky_user_profile t0 join wiky_user_storage t1 
+            select t0.wiky_incr_id, t0.balance
+            from wiky_user_profile t0
             where t0.wiky_incr_id = %s
             ''',
             (ws.wiky_incr,)
@@ -338,8 +357,11 @@ def pull_wiky(db: DBConn, ws: WikySession, amount) -> (bool, str):
             logger.error(f"pull_wiky fail: profile not found - {ws.wiky_uuid}:{ws.name}")
             return (False, "invalid name")
 
+        if amount > profile_row[1]:
+            logger.warning(f"pull_wiky fail: insufficient balance - {profile_row[1]}")
+            return (False, "insufficient balance")
         db.cursor.execute(
-            "update wiky_user_profile balance = %s where wiky_incr_id = %s",
+            "update wiky_user_profile set balance = %s where wiky_incr_id = %s",
             (profile_row[1] - amount, ws.wiky_incr)
         )
 
@@ -357,16 +379,273 @@ def pull_wiky(db: DBConn, ws: WikySession, amount) -> (bool, str):
             ''',
             (amount,)
         )
-        profile_rows = db.cursor.fetchall()
+        page_rows = db.cursor.fetchall()
+
+        for p in page_rows:
+            db.cursor.execute(
+                """
+                insert ignore into wiky_user_collection (wiky_incr_id, page_incr_id)
+                values (%s, %s)
+                """,
+                (ws.wiky_incr, p[1])
+            )
 
         db.conn.commit()
-        logger.info(f"update wiky_user_profile: {repr(ws.wiky_uuid)}:{ws.name}")
+        logger.info(f"pull_wiky ok: {repr(ws.wiky_uuid)}:{ws.name}")
 
     except Exception as e:
         db.conn.rollback()
         logger.error(f"add_balance error: {ws.wiky_uuid}:{repr(e)} - {repr(traceback.format_exc())}")
         logger.error(f"wiky_relation rollback: {repr(ws.wiky_uuid)}:{ws.name}")
         return False
+
+
+def add_item_list(db: DBConn, name: str, stat='live') -> (bool, int):
+    try:
+        db.conn.begin()
+
+        db.cursor.execute(
+            '''
+            insert into wiky_item_list 
+            (item_name, item_stat)
+            values (%s, %s)
+            '''.strip(),
+            (name, stat)
+        )
+        db.conn.commit()
+        logger.info(f"add_item_list ok: {name}:{stat}")
+
+        return (True, db.cursor.lastrowid)
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"add_item_list error: {name}:{stat}:{repr(e)} - {repr(traceback.format_exc())}")
+        logger.error(f"wiky_item_list rollback: {name}:{stat}")
+        return (False, -1)
+
+
+def update_item_list(db: DBConn, item_id: int, name: str, stat: str):
+    try:
+        db.conn.begin()
+
+        db.cursor.execute(
+            '''
+            update wiky_item_list 
+            set item_name = %s, item_stat = %s
+            where incr_id = %s
+            ''',
+            (name, stat, item_id)
+        )
+        db.conn.commit()
+        logger.info(f"add_item_list ok: {item_id}, new_name:{name}:{stat}")
+
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"add_item_list error: {item_id}, new_name:{name}:{repr(e)} - {repr(traceback.format_exc())}")
+        logger.error(f"wiky_item_list rollback: {item_id}")
+        return False
+
+
+def add_shop_item(db: DBConn, item: int | str, cost: int):
+    try:
+        db.conn.begin()
+
+        if type(item) is str:
+            db.cursor.execute(
+                "select incr_id, item_name, item_stat from wiky_item_list where item_name = %s",
+                (item,)
+            )
+            item_row = db.cursor.fetchone()
+
+            if item_row is None:
+                logger.error(f"add_shop_item fail: item not exist - {item}")
+                return (False, "invalid name")
+            elif item_row[2] == 'yanked':
+                logger.error(f"add_shop_item fail: bad status - {item_row}")
+                return (False, "bad status")
+
+            item_id = item_row[0]
+        else:
+            item_id = item
+
+        db.cursor.execute(
+            '''
+            insert into wiky_item_shop 
+            (item_id, item_cost)
+            values (%s, %s)
+            '''.strip(),
+            (item_id, cost)
+        )
+        db.conn.commit()
+        logger.info(f"add_shop_item ok: {item}:{item_id}:{cost}")
+
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"add_shop_item error: {item} - {repr(traceback.format_exc())}")
+        logger.error(f"add_shop_item rollback: {item}")
+        return False
+
+
+def remove_shop_item(db: DBConn, item: int | str):
+    try:
+        db.conn.begin()
+
+        if type(item) is str:
+            db.cursor.execute(
+                "select incr_id, item_name, item_stat from wiky_item_list where item_name = %s",
+                (item,)
+            )
+            item_row = db.cursor.fetchone()
+
+            if item_row is None:
+                logger.error(f"remove_shop_item fail: item not found - {item}")
+                return (False, "invalid name")
+
+            item_id = item_row[0]
+        else:
+            item_id = item
+
+        db.cursor.execute(
+            '''
+            delete from wiky_item_shop
+            where item_id = %s
+            '''.strip(),
+            (item_id,)
+        )
+        db.conn.commit()
+        logger.info(f"remove_shop_item ok: {item}:{item_id}")
+
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"remove_shop_item error: {item} - {repr(traceback.format_exc())}")
+        return False
+
+
+def item_purchase(db: DBConn, ws: WikySession, item: int | str, count: int) -> (bool, str):
+    try:
+        db.conn.begin()
+
+        db.cursor.execute(
+            "select balance from wiky_user_profile where wiky_incr_id = %s",
+            (ws.wiky_incr,)
+        )
+
+        profile_row = db.cursor.fetchone()
+        if profile_row is None:
+            logger.error(f"item_purchase fail: user not found - {ws.wiky_uuid}:{ws.name}")
+            return (False, "invalid name")
+
+        if type(item) is str:
+            db.cursor.execute(
+                """
+                select 
+                t0.incr_id, t0.item_name, t0.item_stat, t1.item_cost
+                from 
+                wiky_item_list t0 join wiky_item_shop t1 on t0.incr_id = t1.item_id
+                where t0.item_name = %s
+                """.strip(),
+                (item,)
+            )
+            item_row = db.cursor.fetchone()
+
+            if item_row is None:
+                logger.error(f"item_purchase fail: item not exist - {item}")
+                return (False, "invalid name")
+            elif item_row[2] == 'yanked':
+                logger.error(f"item_purchase fail: item bad status - {item_row}")
+                return (False, "bad status")
+
+            item_id = item_row[0]
+        else:
+            item_id = item
+            db.cursor.execute(
+                """
+                select 
+                t0.incr_id, t0.item_name, t0.item_stat, t1.item_cost
+                from 
+                wiky_item_list t0 join wiky_item_shop t1 on t0.incr_id = t1.item_id
+                where t0.incr_id = %s
+                """.strip(),
+                (item_id,)
+            )
+            item_row = db.cursor.fetchone()
+
+            if item_row is None:
+                logger.error(f"item_purchase fail: id not exist - {item}")
+                return (False, "invalid id")
+            elif item_row[2] == 'yanked':
+                logger.error(f"item_purchase fail: item bad status - {item_row}")
+                return (False, "bad status")
+
+        if item_row[3] * count > profile_row[0]:
+            logger.warning(f"item_purchase fail: insufficient balance - {item}")
+            return (False, "insufficient balance")
+
+        db.cursor.execute(
+            "update wiky_user_profile set balance = %s where wiky_incr_id = %s",
+            (profile_row[0] - count * item_row[3], ws.wiky_incr)
+        )
+
+        db.cursor.execute(
+            """
+            insert into wiky_user_storage (wiky_incr_id, item_id, item_count)
+            values (%s, %s, %s)
+            on duplicate key update item_count = item_count + %s;
+            """,
+            (ws.wiky_incr, item_id, count, count)
+        )
+
+        db.conn.commit()
+        logger.info(f"item_purchase ok: {ws.name}")
+        logger.info(f"update wiky_user_profile: {ws.name}")
+        return (True, "ok")
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"item_purchase error: {ws.wiky_uuid}:{repr(e)} - {repr(traceback.format_exc())}")
+        logger.error(f"item_purchase rollback: {repr(ws.wiky_uuid)}:{ws.name}")
+        return False
+
+
+def get_user_info(db: DBConn, ws: WikySession) -> (bool, dict | str, list):
+    try:
+        db.conn.begin()
+        dict_cursor = db.conn.cursor(dictionary=True)
+        dict_cursor.execute(
+            """
+            select 
+            t1.incr_id, t1.uni_incr_id, t1.username, t1.display_name, t1.user_uuid, t1.acc_status, t1.time_created,
+            t0.mail, t0.pwd_hash, t0.acc_status,
+            t2.balance, t2.pull_count, t2.ranks,
+            t3.description
+            from wiky_user_account t1 
+            join uni_account t0 on t1.uni_incr_id = t0.incr_id
+            join wiky_user_profile t2 on t0.incr_id = t2.wiky_incr_id
+            join wiky_user_intro t3 on t0.incr_id = t3.wiky_incr_id
+            
+            where t1.incr_id = %s
+            """.strip(),
+            (ws.wiky_incr,)
+        )
+
+        profile_row = dict_cursor.fetchone()
+        if profile_row is None:
+            logger.error(f"get_user_info fail: user not found - {ws.wiky_uuid}:{ws.name}")
+            return (False, "invalid id")
+
+        db.cursor.execute(
+            '''
+            select * from wiky_user_collection
+            where wiky_incr_id = %s;
+            ''',
+            (ws.wiky_incr,)
+        )
+        pulls = db.cursor.fetchall()
+
+        return (True, profile_row, pulls)
+
+    except Exception as e:
+        db.conn.rollback()
+        logger.error(f"get_user_info error: {ws.wiky_uuid}:{repr(ws.name)}:{repr(e)} - {repr(traceback.format_exc())}")
+        return (False, f"get_user_info: {repr(e)}", None)
 
 
 if __name__ == '__main__':

@@ -83,16 +83,46 @@
 ## 07/14
 ### Changed
 
-- update gitignore
-- migrate `wiky` from sqlite to mariadb
-- impl initial table layout
-- complete system interaction layout graph
-- impl setup for database tables
-- impl connection for mariadb
-- impl `wiky_parser`
+- update system component graph
 - add glue pyo3 for python with cargo
 - impl zstd remapping for wiky page chunk (from bz2)
 - impl enwiki_dump validation
 - impl enwiki_dump/remapped benchmark
 - impl chunk extraction
+
+
+## 07/03
+### Changed
+- update gitignore
+- migrate `wiky` from sqlite to mariadb
+- impl connection for mariadb
+- impl `wiky_parser`
 - add `WikySource`
+- rewrote table layout
+- impl setup for mariadb tables
+- complete system interaction layout graph
+- complete enwiki full iteration with wiky_parser
+
+
+## 06/17
+### Changed
+
+- shifted project to standalone repo (wiky)
+
+
+## 06/14
+### Changed
+- complete initial system design
+- impl initial table layout in sqlite
+- impl basic select/insert in sqlite
+- impl basic per page extraction from enwiki
+- start parsing full enwiki dump
+
+
+## 06/01
+### Changed
+- decide on project title, overall goal
+- create initial system design
+- init python sqlite project in base_repo
+- impl initial table layout in sqlite
+- attempting to download enwiki dump
